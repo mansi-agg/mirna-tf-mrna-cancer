@@ -149,25 +149,25 @@ Cleaning miR data for further analysis - making the column name of `miRNA`
 expression the same as `RNA` expression.
 \
 ```{r}
-# # select RPM of miRNA for corrolation analysis
-# miRNA_analysis <-  mirna_data %>%
-#               dplyr::select(miRNA_ID, contains("reads_per_million_miRNA_mapped"))
-# 
-# # rename rows (miRNA ID) and columns (patient ID)
-# rownames(miRNA_analysis) <- miRNA_analysis$miRNA_ID
-# colnames(miRNA_analysis) <- gsub("reads_per_million_miRNA_mapped_", "", colnames(miRNA_analysis))
-# 
-# # drop column miRNA_ID (this information is stored in row names)
-# miRNA_analysis <- miRNA_analysis %>% dplyr::select(-miRNA_ID)
-# 
-# # To make the miRNA column name match the sample ID
-# names(miRNA_analysis) <- gsub("-[^-]*$","",
-#                               # "-": match string with "-"
-#                               # "-[^-]*": match all non "-" strings followed by the "-"
-#                               # "$": match only at the last occurrence of the pattern
-#                               gsub("-[^-]*$","",
-#                                    # repeat three times to remove the strings after the 3rd last ""
-#                                    gsub("-[^-]*$","",names(miRNA_analysis))))
+# select RPM of miRNA for corrolation analysis
+miRNA_analysis <-  mirna_data %>%
+              dplyr::select(miRNA_ID, contains("reads_per_million_miRNA_mapped"))
+
+# rename rows (miRNA ID) and columns (patient ID)
+rownames(miRNA_analysis) <- miRNA_analysis$miRNA_ID
+colnames(miRNA_analysis) <- gsub("reads_per_million_miRNA_mapped_", "", colnames(miRNA_analysis))
+
+# drop column miRNA_ID (this information is stored in row names)
+miRNA_analysis <- miRNA_analysis %>% dplyr::select(-miRNA_ID)
+
+# To make the miRNA column name match the sample ID
+names(miRNA_analysis) <- gsub("-[^-]*$","",
+                              # "-": match string with "-"
+                              # "-[^-]*": match all non "-" strings followed by the "-"
+                              # "$": match only at the last occurrence of the pattern
+                              gsub("-[^-]*$","",
+                                   # repeat three times to remove the strings after the 3rd last ""
+                                   gsub("-[^-]*$","",names(miRNA_analysis))))
 ```
 
 
@@ -175,25 +175,25 @@ expression the same as `RNA` expression.
 Right now, the data size is as follows:
 \
 ```{r}
-# dim(rna_analysis)
-# dim(miRNA_analysis)
+dim(rna_analysis)
+dim(miRNA_analysis)
 ```
 
 \
 ```{r}
-# common_cols <- intersect(names(rna_analysis), names(miRNA_analysis))
-# 
-# # Keep RNA samples with miRNA data
-# # rna_analysis <- rna_analysis[, names(miRNA_analysis)[which(names(miRNA_analysis) %in% names(rna_analysis))]]
-# rna_analysis <- rna_analysis[, common_cols, drop = FALSE]
-# 
-# # Match the samples of miRNA data with RNA data
-# miRNA_analysis <- miRNA_analysis[, common_cols, drop = FALSE]
-# 
-# cat(length(names(miRNA_analysis)), "samples have matched mRNA & miRNA data\n")
-# 
-# dim(rna_analysis)
-# dim(miRNA_analysis)
+common_cols <- intersect(names(rna_analysis), names(miRNA_analysis))
+
+# Keep RNA samples with miRNA data
+# rna_analysis <- rna_analysis[, names(miRNA_analysis)[which(names(miRNA_analysis) %in% names(rna_analysis))]]
+rna_analysis <- rna_analysis[, common_cols, drop = FALSE]
+
+# Match the samples of miRNA data with RNA data
+miRNA_analysis <- miRNA_analysis[, common_cols, drop = FALSE]
+
+cat(length(names(miRNA_analysis)), "samples have matched mRNA & miRNA data\n")
+
+dim(rna_analysis)
+dim(miRNA_analysis)
 ```
 \
 
@@ -204,37 +204,37 @@ We first filter out `rNA` and `miRNA` with no expression, i.e., rows which have 
 \
 
 ```{r}
-# miRNA_analysis <- miRNA_analysis %>%
-#   dplyr::filter(rowSums(.) > 0) 
-# 
-# rna_analysis <- rna_analysis %>%
-#   dplyr::filter(rowSums(.) > 0)
+miRNA_analysis <- miRNA_analysis %>%
+  dplyr::filter(rowSums(.) > 0)
+
+rna_analysis <- rna_analysis %>%
+  dplyr::filter(rowSums(.) > 0)
 ```
 \
 New data dimensions:
 \
 ```{r}
-# dim(rna_analysis)
-# dim(miRNA_analysis)
+dim(rna_analysis)
+dim(miRNA_analysis)
 ```
 \
 
 #### 3.3 Removing low-expressed transcripts
 
 ```{r}
-# rna_analysis <- rna_analysis %>%
-#   mutate(ZeroPercentage = rowMeans(. == 0, na.rm = TRUE) * 100) %>%
-#   dplyr::filter(ZeroPercentage <= expression_threshold) %>%
-#   dplyr::select(-ZeroPercentage)
-# 
-# miRNA_analysis <- miRNA_analysis %>%
-#   mutate(ZeroPercentage = rowMeans(. == 0, na.rm = TRUE) * 100) %>%
-#   dplyr::filter(ZeroPercentage <= expression_threshold) %>%
-#   dplyr::select(-ZeroPercentage)
-# 
-# 
-# dim(rna_analysis)
-# dim(miRNA_analysis)
+rna_analysis <- rna_analysis %>%
+  mutate(ZeroPercentage = rowMeans(. == 0, na.rm = TRUE) * 100) %>%
+  dplyr::filter(ZeroPercentage <= expression_threshold) %>%
+  dplyr::select(-ZeroPercentage)
+
+miRNA_analysis <- miRNA_analysis %>%
+  mutate(ZeroPercentage = rowMeans(. == 0, na.rm = TRUE) * 100) %>%
+  dplyr::filter(ZeroPercentage <= expression_threshold) %>%
+  dplyr::select(-ZeroPercentage)
+
+
+dim(rna_analysis)
+dim(miRNA_analysis)
 ```
 
 
@@ -243,8 +243,8 @@ New data dimensions:
 Add 1 and take log2 of each value in both datasets:
 \
 ```{r}
-# rna_analysis <- rna_analysis %>% mutate_all(~ log2(. + 1))
-# miRNA_analysis <- miRNA_analysis %>% mutate_all(~ log2(. + 1))
+rna_analysis <- rna_analysis %>% mutate_all(~ log2(. + 1))
+miRNA_analysis <- miRNA_analysis %>% mutate_all(~ log2(. + 1))
 ```
 
 
@@ -257,11 +257,11 @@ Add 1 and take log2 of each value in both datasets:
 When reading data again:
 
 ```{r}
-rna_analysis <- read_csv(file.path(input_data_study_dir, "rNA_filtered_data.csv")) %>%
-  tibble::column_to_rownames(var = colnames(.)[1])
-
-miRNA_analysis <- read_csv(file.path(input_data_study_dir, "miRNA_filtered_data.csv")) %>%
-  tibble::column_to_rownames(var = colnames(.)[1])
+# rna_analysis <- read_csv(file.path(input_data_study_dir, "rNA_filtered_data.csv")) %>%
+#   tibble::column_to_rownames(var = colnames(.)[1])
+# 
+# miRNA_analysis <- read_csv(file.path(input_data_study_dir, "miRNA_filtered_data.csv")) %>%
+#   tibble::column_to_rownames(var = colnames(.)[1])
 ```
 
 
@@ -762,7 +762,29 @@ overlap_analysis.poscor.sig <- overlap_analysis.poscor %>%
 
 
 
+```{r}
+library(mediation)
 
+# Extract and align expression vectors
+miR <- "hsa-mir-934"
+TF <- "FOXC1"
+mRNA <- "VGLL1"
+
+expr_df <- data.frame(
+  miRNA = as.numeric(miRNA_analysis[miR, ]),
+  TF = as.numeric(rna_analysis[gene_mapping$gene_id[gene_mapping$gene_symbol == TF], ]),
+  mRNA = as.numeric(rna_analysis[gene_mapping$gene_id[gene_mapping$gene_symbol == mRNA], ])
+)
+
+
+# Run mediation analysis
+model.M <- lm(TF ~ miRNA, data = expr_df)
+model.Y <- lm(mRNA ~ miRNA + TF, data = expr_df)
+med.out <- mediate(model.M, model.Y, treat = "miRNA", mediator = "TF", boot = TRUE, sims = 1000)
+
+summary(med.out)
+
+```
 
 
 
