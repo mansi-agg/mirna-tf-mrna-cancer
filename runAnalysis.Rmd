@@ -13,29 +13,32 @@ steps to retrieve input data and reproduce results have been commented.
 
 ### 1. Loading Libraries
 ```{r, results='hide', message=FALSE, warning=FALSE}
-# library("SummarizedExperiment")
+## 
+library(here)
+
+## Quering and reading TCGA data
 # library("TCGAbiolinks")
-library("tidyverse")
-library("Hmisc") # for rcorr
+library(SummarizedExperiment)
+library(MatrixGenerics)
+library(matrixStats)
 
+## Data wrangling
+library(tidyverse)
 # library("stringr")
-# library("reshape2")
-library("ggplot2")
-library("cowplot")
+
+## Stats
+library(Hmisc) # for rcorr
+library(clusterProfiler) # For over-representation analysis
+library(multiMiR) # For miRNA targets
+
+
+## Data visualisation
+library(ggplot2)
+library(ggrepel)
+# library("cowplot")
 # library("RColorBrewer")
-library("colormap")
+# library("colormap")
 
-# library("ggraph", lib.loc = "/vast/ai_projects/melanoma_depigmentation_biomarker_discovery/Rlib_4.4.0/")
-# library("igraph", lib.loc = "/vast/ai_projects/melanoma_depigmentation_biomarker_discovery/Rlib_4.4.0/")
-# library("ggridges")
-
-library("ggrepel")
-
-library("clusterProfiler")
-# library("org.Hs.eg.db")
-library("multiMiR")
-
-library("here")
 # library("ggnewscale")
 ```
 
@@ -146,25 +149,25 @@ Cleaning miR data for further analysis - making the column name of `miRNA`
 expression the same as `RNA` expression.
 \
 ```{r}
-# select RPM of miRNA for corrolation analysis
-miRNA_analysis <-  mirna_data %>%
-              dplyr::select(miRNA_ID, contains("reads_per_million_miRNA_mapped"))
-
-# rename rows (miRNA ID) and columns (patient ID)
-rownames(miRNA_analysis) <- miRNA_analysis$miRNA_ID
-colnames(miRNA_analysis) <- gsub("reads_per_million_miRNA_mapped_", "", colnames(miRNA_analysis))
-
-# drop column miRNA_ID (this information is stored in row names)
-miRNA_analysis <- miRNA_analysis %>% dplyr::select(-miRNA_ID)
-
-# To make the miRNA column name match the sample ID
-names(miRNA_analysis) <- gsub("-[^-]*$","",
-                              # "-": match string with "-"
-                              # "-[^-]*": match all non "-" strings followed by the "-"
-                              # "$": match only at the last occurrence of the pattern
-                              gsub("-[^-]*$","",
-                                   # repeat three times to remove the strings after the 3rd last ""
-                                   gsub("-[^-]*$","",names(miRNA_analysis))))
+# # select RPM of miRNA for corrolation analysis
+# miRNA_analysis <-  mirna_data %>%
+#               dplyr::select(miRNA_ID, contains("reads_per_million_miRNA_mapped"))
+# 
+# # rename rows (miRNA ID) and columns (patient ID)
+# rownames(miRNA_analysis) <- miRNA_analysis$miRNA_ID
+# colnames(miRNA_analysis) <- gsub("reads_per_million_miRNA_mapped_", "", colnames(miRNA_analysis))
+# 
+# # drop column miRNA_ID (this information is stored in row names)
+# miRNA_analysis <- miRNA_analysis %>% dplyr::select(-miRNA_ID)
+# 
+# # To make the miRNA column name match the sample ID
+# names(miRNA_analysis) <- gsub("-[^-]*$","",
+#                               # "-": match string with "-"
+#                               # "-[^-]*": match all non "-" strings followed by the "-"
+#                               # "$": match only at the last occurrence of the pattern
+#                               gsub("-[^-]*$","",
+#                                    # repeat three times to remove the strings after the 3rd last ""
+#                                    gsub("-[^-]*$","",names(miRNA_analysis))))
 ```
 
 
@@ -172,25 +175,25 @@ names(miRNA_analysis) <- gsub("-[^-]*$","",
 Right now, the data size is as follows:
 \
 ```{r}
-dim(rna_analysis)
-dim(miRNA_analysis)
+# dim(rna_analysis)
+# dim(miRNA_analysis)
 ```
 
 \
 ```{r}
-common_cols <- intersect(names(rna_analysis), names(miRNA_analysis))
-
-# Keep RNA samples with miRNA data
-# rna_analysis <- rna_analysis[, names(miRNA_analysis)[which(names(miRNA_analysis) %in% names(rna_analysis))]]
-rna_analysis <- rna_analysis[, common_cols, drop = FALSE]
-
-# Match the samples of miRNA data with RNA data
-miRNA_analysis <- miRNA_analysis[, common_cols, drop = FALSE]
-
-cat(length(names(miRNA_analysis)), "samples have matched mRNA & miRNA data\n")
-
-dim(rna_analysis)
-dim(miRNA_analysis)
+# common_cols <- intersect(names(rna_analysis), names(miRNA_analysis))
+# 
+# # Keep RNA samples with miRNA data
+# # rna_analysis <- rna_analysis[, names(miRNA_analysis)[which(names(miRNA_analysis) %in% names(rna_analysis))]]
+# rna_analysis <- rna_analysis[, common_cols, drop = FALSE]
+# 
+# # Match the samples of miRNA data with RNA data
+# miRNA_analysis <- miRNA_analysis[, common_cols, drop = FALSE]
+# 
+# cat(length(names(miRNA_analysis)), "samples have matched mRNA & miRNA data\n")
+# 
+# dim(rna_analysis)
+# dim(miRNA_analysis)
 ```
 \
 
@@ -201,37 +204,37 @@ We first filter out `rNA` and `miRNA` with no expression, i.e., rows which have 
 \
 
 ```{r}
-miRNA_analysis <- miRNA_analysis %>%
-  dplyr::filter(rowSums(.) > 0) # miRNAs with no expression across all samples, rowSums (sum of expression) = 0
-
-rna_analysis <- rna_analysis %>%
-  dplyr::filter(rowSums(.) > 0)
+# miRNA_analysis <- miRNA_analysis %>%
+#   dplyr::filter(rowSums(.) > 0) 
+# 
+# rna_analysis <- rna_analysis %>%
+#   dplyr::filter(rowSums(.) > 0)
 ```
 \
 New data dimensions:
 \
 ```{r}
-dim(rna_analysis)
-dim(miRNA_analysis)
+# dim(rna_analysis)
+# dim(miRNA_analysis)
 ```
 \
 
 #### 3.3 Removing low-expressed transcripts
 
 ```{r}
-rna_analysis <- rna_analysis %>%
-  mutate(ZeroPercentage = rowMeans(. == 0, na.rm = TRUE) * 100) %>%
-  dplyr::filter(ZeroPercentage <= expression_threshold) %>%
-  dplyr::select(-ZeroPercentage)
-
-miRNA_analysis <- miRNA_analysis %>%
-  mutate(ZeroPercentage = rowMeans(. == 0, na.rm = TRUE) * 100) %>%
-  dplyr::filter(ZeroPercentage <= expression_threshold) %>%
-  dplyr::select(-ZeroPercentage)
-
-
-dim(rna_analysis)
-dim(miRNA_analysis)
+# rna_analysis <- rna_analysis %>%
+#   mutate(ZeroPercentage = rowMeans(. == 0, na.rm = TRUE) * 100) %>%
+#   dplyr::filter(ZeroPercentage <= expression_threshold) %>%
+#   dplyr::select(-ZeroPercentage)
+# 
+# miRNA_analysis <- miRNA_analysis %>%
+#   mutate(ZeroPercentage = rowMeans(. == 0, na.rm = TRUE) * 100) %>%
+#   dplyr::filter(ZeroPercentage <= expression_threshold) %>%
+#   dplyr::select(-ZeroPercentage)
+# 
+# 
+# dim(rna_analysis)
+# dim(miRNA_analysis)
 ```
 
 
@@ -240,25 +243,25 @@ dim(miRNA_analysis)
 Add 1 and take log2 of each value in both datasets:
 \
 ```{r}
-rna_analysis <- rna_analysis %>% mutate_all(~ log2(. + 1))
-miRNA_analysis <- miRNA_analysis %>% mutate_all(~ log2(. + 1))
+# rna_analysis <- rna_analysis %>% mutate_all(~ log2(. + 1))
+# miRNA_analysis <- miRNA_analysis %>% mutate_all(~ log2(. + 1))
 ```
 
 
 ```{r}
-write.csv(rna_analysis, file.path(save_dir, "rNA_filtered_data_v2.csv"), row.names = T)
-write.csv(miRNA_analysis, file.path(save_dir, "miRNA_filtered_data_v2.csv"), row.names = T)
+# write.csv(rna_analysis, file.path(results_save_dir, "rNA_filtered_data.csv"), row.names = T)
+# write.csv(miRNA_analysis, file.path(results_save_dir, "miRNA_filtered_data.csv"), row.names = T)
 ```
 
 
 When reading data again:
 
 ```{r}
-# rna_analysis <- read_csv("data_files/publication/TCGA-BRCA/rNA_filtered_data_v2.csv") %>%
-#   tibble::column_to_rownames(var = colnames(.)[1])
-# 
-# miRNA_analysis <- read_csv("data_files/publication/TCGA-BRCA/miRNA_filtered_data_v2.csv") %>%
-#   tibble::column_to_rownames(var = colnames(.)[1])
+rna_analysis <- read_csv(file.path(input_data_study_dir, "rNA_filtered_data.csv")) %>%
+  tibble::column_to_rownames(var = colnames(.)[1])
+
+miRNA_analysis <- read_csv(file.path(input_data_study_dir, "miRNA_filtered_data.csv")) %>%
+  tibble::column_to_rownames(var = colnames(.)[1])
 ```
 
 
@@ -272,45 +275,45 @@ When reading data again:
 # combined.matrix <- t(as.matrix(rbind(rna_analysis, miRNA_analysis)))
 # cor.res <- rcorr(combined.matrix)
 # 
-# saveRDS(cor.res, file.path(save_dir, "cor_res.RDS"))
+# saveRDS(cor.res, file.path(results_save_dir, "cor_res.RDS"))
 
-cor.res <- readRDS(file.path(input_data_study_dir, "cor_res.RDS"))
-
-# simplify the matrix - row is mRNA and column is miRNA
-r_matrix <- cor.res$r[!grepl("hsa-", colnames(cor.res$r)),grepl("hsa-", colnames(cor.res$r))]
-p_matrix <- cor.res$P[!grepl("hsa-", colnames(cor.res$P)),grepl("hsa-", colnames(cor.res$P))]
+# cor.res <- readRDS(file.path(input_data_study_dir, "cor_res.RDS"))
+# 
+# # simplify the matrix - row is mRNA and column is miRNA
+# r_matrix <- cor.res$r[!grepl("hsa-", colnames(cor.res$r)),grepl("hsa-", colnames(cor.res$r))]
+# p_matrix <- cor.res$P[!grepl("hsa-", colnames(cor.res$P)),grepl("hsa-", colnames(cor.res$P))]
 ```
 
 Merging the two dataframes:
 \
 ```{r}
-r_matrix <- as.data.frame(r_matrix) %>%
-  mutate(RNA = rownames(r_matrix)) %>%
-  pivot_longer(cols = -RNA,
-               names_to = "miRNA",
-               values_to = "coef")
+# r_matrix <- as.data.frame(r_matrix) %>%
+#   mutate(RNA = rownames(r_matrix)) %>%
+#   pivot_longer(cols = -RNA,
+#                names_to = "miRNA",
+#                values_to = "coef")
+# 
+# p_matrix <- as.data.frame(p_matrix) %>%
+#   mutate(RNA = rownames(p_matrix)) %>%
+#   pivot_longer(cols = -RNA,
+#                names_to = "miRNA",
+#                values_to = "p_val")
+#  
+# cor_result_sig <- r_matrix %>%
+#   left_join(p_matrix, by = c("RNA", "miRNA")) %>% # joint r and p values
+#   arrange(p_val) %>% # arrange by p values
+#   mutate(p_val_adj = p.adjust(p_val, method = "BH")) %>% # adjust p values with BH procedure
+#   dplyr::filter(p_val_adj < 0.05) %>%
+#   mutate(RNA_ENSEMBL = gsub("\\..*", "", RNA)) %>%
+#   left_join(gene_mapping,  by = c("RNA" = "gene_id")) 
+#   
+# cor_result_sig <- cor_result_sig %>%
+#   dplyr::rename(RNA_symbol = gene_symbol)
+# 
+# write.csv(cor_result_sig, file.path(results_save_dir, "TCGA_BRCA_mRNA_miRNA_sig_cor.csv"), 
+#           row.names = F)
 
-p_matrix <- as.data.frame(p_matrix) %>%
-  mutate(RNA = rownames(p_matrix)) %>%
-  pivot_longer(cols = -RNA,
-               names_to = "miRNA",
-               values_to = "p_val")
- 
-cor_result_sig <- r_matrix %>%
-  left_join(p_matrix, by = c("RNA", "miRNA")) %>% # joint r and p values
-  arrange(p_val) %>% # arrange by p values
-  mutate(p_val_adj = p.adjust(p_val, method = "BH")) %>% # adjust p values with BH procedure
-  dplyr::filter(p_val_adj < 0.05) %>%
-  mutate(RNA_ENSEMBL = gsub("\\..*", "", RNA)) %>%
-  left_join(gene_mapping,  by = c("RNA" = "gene_id")) 
-  
-cor_result_sig <- cor_result_sig %>%
-  dplyr::rename(RNA_symbol = gene_symbol)
-
-write.csv(cor_result_sig, file.path(save_dir, "TCGA_BRCA_mRNA_miRNA_sig_cor.csv"), 
-          row.names = F)
-
-# cor_result_sig <- read_csv(file.path(input_data_study_dir, "TCGA_BRCA_mRNA_miRNA_sig_cor.csv"))
+cor_result_sig <- read_csv(file.path(input_data_study_dir, "TCGA_BRCA_mRNA_miRNA_sig_cor.csv"))
   
 ```
 
@@ -416,23 +419,24 @@ length(intersect(known_TFs$HGNC.symbol, cor_result_sig$RNA_symbol))
 
 
 ```{r}
-interactions <- get_multimir(org = "hsa",
-                         mirna   = row.names(miRNA_analysis),
-                         table   = "validated",
-                         summary = TRUE,
-                         use.tibble = TRUE)
+# interactions <- get_multimir(org = "hsa",
+#                          mirna   = row.names(miRNA_analysis),
+#                          table   = "validated",
+#                          summary = TRUE,
+#                          use.tibble = TRUE)
+# 
+# # # Get miRs that interact with known TFs
+# 
+# interactions_TFs <- as.data.frame(interactions@data %>%
+#   filter(interactions@data$target_symbol %in% known_TFs$HGNC.symbol))
+# 
+# cat("Out of the", nrow(miRNA_analysis), "miRs,", length(unique(interactions_TFs$mature_mirna_id)),
+#     "interact with", length(unique(interactions_TFs$target_symbol)), "known TFs.",
+#     sep = " ")
+# 
+# write.csv(interactions_TFs, file.path(results_save_dir, "interactions_TFs.csv"), row.names = FALSE)
 
-# # Get miRs that interact with known TFs
-
-interactions_TFs <- as.data.frame(interactions@data %>%
-  filter(interactions@data$target_symbol %in% known_TFs$HGNC.symbol))
-
-cat("Out of the", nrow(miRNA_analysis), "miRs,", length(unique(interactions_TFs$mature_mirna_id)),
-    "interact with", length(unique(interactions_TFs$target_symbol)), "known TFs.",
-    sep = " ")
-
-write.csv(interactions_TFs, file.path(save_dir, "interactions_TFs.csv"), row.names = FALSE)
-# interactions_TFs <- read_csv("data_files/publication/TCGA-BRCA/interactions_TFs.csv")
+interactions_TFs <- read_csv(file.path(results_save_dir, "interactions_TFs.csv"))
 ```
 
 
@@ -536,6 +540,9 @@ dim(overlap_analysis_data)
 #### 4.5 Getting 'true' target genes of TF
 
 ```{r}
+
+## For breast cancer cell lines
+
 # cell_lines_cellosaurus <- read_csv(file.path(input_data_study_dir, "Cell_lines_in_cellosaurus.csv"))
 # 
 # cell_lines_not_in_cellosaurus <- read_csv(file.path(input_data_study_dir, "Cell_lines_not_in_cellosaurus.csv"))
@@ -544,23 +551,26 @@ dim(overlap_analysis_data)
 #   filter(`Cancer/Not Cancer` == "Cancer") %>%
 #   dplyr::select(-c(`Cancer/Not Cancer`, Notes))
 # 
-# breast_cancer_cell_lines_data <- rbind(cell_lines_cellosaurus,
+# cancer_cell_lines_data <- rbind(cell_lines_cellosaurus,
 #                                   cell_lines_not_in_cellosaurus)
 # 
-# breast_cancer_cell_lines_data <- breast_cancer_cell_lines_data %>%
+# cancer_cell_lines_data <- cancer_cell_lines_data %>%
 #   distinct()
 # 
-# breast_cancer_cell_lines <- breast_cancer_cell_lines_data$`SRX ID`
+# cancer_cell_lines <- cancer_cell_lines_data$`SRX ID`
 # 
-# write.csv(breast_cancer_cell_lines, file.path(save_dir, "Breast_Cancer_Cell_Lines.csv"),
+# write.csv(cancer_cell_lines_data, file.path(results_save_dir, "cancer_cell_lines.csv"),
 #           row.names = F)
+```
 
-breast_cancer_cell_lines <- read_csv(file.path(input_data_study_dir, "Breast_Cancer_Cell_Lines.csv"))
 
-breast_cancer_cell_lines <- breast_cancer_cell_lines$x
+```{r}
+cancer_cell_lines_data <- read_csv(file.path(input_data_study_dir, "Breast_Cancer_Cell_Lines.csv"))
 
-biological_replicates <- breast_cancer_cell_lines_data %>%
-  dplyr::group_by(breast_cancer_cell_lines_data$`Track type`) %>%
+cancer_cell_lines <- cancer_cell_lines_data$`SRX ID`
+
+biological_replicates <- cancer_cell_lines_data %>%
+  dplyr::group_by(cancer_cell_lines_data$`Track type`) %>%
   summarise(count = n()) 
 
 colnames(biological_replicates) <- c("Track type", "Count")
@@ -570,11 +580,14 @@ colnames(biological_replicates) <- c("Track type", "Count")
 ```{r}
 cat("Number of TFs with any Chip-seq data and corrolated with any miRNA in", study, ":", length(unique(overlap_analysis_data$TF)), "\n")
 
-cat("Number of TFs with cancer cell lines Chip-seq data", length(unique(biological_replicates$`Track type`)), "\n")
+cat("Number of TFs with cancer cell lines Chip-seq data: ", length(unique(biological_replicates$`Track type`)), "\n")
 
 cat("Number of TFs corrolated with any miRNA in", study,  "and have Chip-seq data in cancer cell lines: ", length(intersect(overlap_analysis_data$TF, biological_replicates$`Track type`)), "\n")
 ```
 
+
+Now, for each TF, we only keep target genes that have peaks in at least 50% cell lines —
+we set `gene_peaks_in_cell_lines_threshold` for this.
 
 ```{r}
 TF.target.list <- list()
@@ -585,8 +598,8 @@ for(TF in TF_available){
   names(TF.target.file) <- gsub("\\..*","", names(TF.target.file))
   
   # if any column are breast cancer cell lines
-  if (sum(names(TF.target.file) %in% breast_cancer_cell_lines)){
-    TF.target.file <- TF.target.file[, c(1, which(names(TF.target.file) %in% breast_cancer_cell_lines))] 
+  if (sum(names(TF.target.file) %in% cancer_cell_lines)){
+    TF.target.file <- TF.target.file[, c(1, which(names(TF.target.file) %in% cancer_cell_lines))] 
     
     TF.target.file <- TF.target.file %>%
       mutate(consensus = rowMeans(dplyr::select(., -1) != 0)) %>%
@@ -612,25 +625,48 @@ TF.target.gene.count <- TF.target.gene.count %>%
 # check: no linear relationship between TF target count and TF replicate count
 ggplot(TF.target.gene.count, aes(x=log2(replicate.count), y=log2(target.count))) +
   geom_point() +
-  ggtitle("TF target counts are not correlated with the number of biological replicates") 
+  labs(x = "Log2 Replicate Count",
+       y = "Log2 Target Gene Count",
+       title = "TF target counts are not correlated with the number of biological replicates") +
+  theme_minimal()
 
 spearman.cor <- cor.test(TF.target.gene.count$replicate.count, TF.target.gene.count$target.count, method = "spearman")
-
 
 TF.target.df <- data.frame(TF = c(), target_genes = c())
 TF.target.df <- do.call(rbind, lapply(names(TF.target.list), function(tf) {data.frame(TF = tf, TF_targets = TF.target.list[[tf]], stringsAsFactors = FALSE)})) 
 ``` 
 
 
-#### 5. Over-representation analysis (needs to be updated)
+#### 5.1 Over-representation analysis (needs to be updated)
 
 For each TF-miRNA pair, calculate 
 1) overlap between miRNA-correlated genes and TF targets
 2) overlap between the overlapping geneset and miRNA direct targets
 
+We remove miR's direct targets in the overlapping gene set and then run over-representation analysis.
+
+
+```{r}
+# miR.direct.targets <- get_multimir(org = "hsa",
+#                          mirna   = unique(overlap_analysis_data$miRNA),
+#                          table   = "validated",
+#                          summary = TRUE,
+#                          use.tibble = TRUE)
+# 
+# miR.direct.targets <- as.data.frame(miR.direct.targets@data) %>%
+#   mutate(miRNA = tolower(mature_mirna_id))
+# 
+# 
+# write.csv(miR.direct.targets, file.path(input_data_study_dir, "miRNA_direct_targets.csv"), row.names = F)
+
+miR.direct.targets <- read_csv(file.path(input_data_study_dir, "miRNA_direct_targets.csv"))
+```
+
+
 ```{r}
 bg_geneset <- data.frame(TF = "background", 
-                         TF_targets = dplyr::filter(gene_mapping, gene_id %in% rownames(rna_analysis))$gene_symbol) 
+                         TF_targets = dplyr::filter(gene_mapping, gene_id %in%
+                                                      rownames(rna_analysis))$gene_symbol) 
 
 TERM2GENE <- TF.target.df %>%
   dplyr::filter(TF_targets %in% bg_geneset$TF_targets) %>%
@@ -642,13 +678,18 @@ overlap_analysis_data <- overlap_analysis_data %>%
 mirna.negcor.ora.list <- list()
 mirna.poscor.ora.list <- list()
 
+
 for (mirna in unique(overlap_analysis_data$miRNA)){
   
+  direct_targets <- miR.direct.targets %>%
+    filter(miRNA == mirna) %>%
+    pull(target_symbol)
+
   mirna_cor_genes_neg <- cor_result_sig %>% 
-    dplyr::filter(miRNA == mirna & coef < 0)
+    filter(miRNA == mirna & coef < 0 & !(RNA_symbol %in% direct_targets))
   
   mirna_cor_genes_pos <- cor_result_sig %>% 
-    dplyr::filter(miRNA == mirna & coef > 0)
+    filter(miRNA == mirna & coef > 0 & !(RNA_symbol %in% direct_targets))
   
   # ora with neg.cor genes
   mirna.negcor.ora <- enricher(gene = mirna_cor_genes_neg$RNA_symbol,
@@ -662,32 +703,33 @@ for (mirna in unique(overlap_analysis_data$miRNA)){
   
   mirna.negcor.ora.list[[mirna]] <- mirna.negcor.ora@result %>%
                                     mutate(miRNA = mirna) %>%
-                                    dplyr::select(miRNA, ID, BgRatio, GeneRatio, FoldEnrichment,
-                                                  geneID, pvalue) %>%
+                                    dplyr::select(miRNA, ID, BgRatio, GeneRatio,
+                                                  geneID, pvalue, qvalue) %>%
                                     dplyr::rename(TF_target_BgRatio = BgRatio, 
                                                   negcor_GeneRatio = GeneRatio,
-                                                  negcor_FoldEnrichment = FoldEnrichment,
                                                   negcor_overlap_geneID = geneID,
-                                                  negcor_ora_pval = pvalue)
+                                                  negcor_ora_pval = pvalue,
+                                                  negcor_ora_qval = qvalue)
   
    # ora with pos.cor genes
    mirna.poscor.ora <- enricher(gene = mirna_cor_genes_pos$RNA_symbol,
                   pvalueCutoff = 1,
                   pAdjustMethod = "BH",
-                  qvalueCutoff = 1, , universe = bg_geneset$TF_targets,
+                  qvalueCutoff = 1, 
+                  universe = bg_geneset$TF_targets,
                   TERM2GENE = TERM2GENE,
                   minGSSize = 0,
                   maxGSSize = (nrow(bg_geneset)-2))
   
   mirna.poscor.ora.list[[mirna]] <-mirna.poscor.ora@result %>%
                                     mutate(miRNA = mirna) %>%
-                                    dplyr::select(miRNA, ID, BgRatio, GeneRatio, FoldEnrichment,
-                                                  geneID, pvalue) %>%
+                                    dplyr::select(miRNA, ID, BgRatio, GeneRatio,
+                                                  geneID, pvalue, qvalue) %>%
                                     dplyr::rename(TF_target_BgRatio = BgRatio, 
                                                   poscor_GeneRatio = GeneRatio,
-                                                  poscor_FoldEnrichment = FoldEnrichment,
                                                   poscor_overlap_geneID = geneID,
-                                                  poscor_ora_pval = pvalue)
+                                                  poscor_ora_pval = pvalue,
+                                                  poscor_ora_qval = qvalue)
 }
 
 mirna.negcor.ora.df.combined <- do.call(rbind, mirna.negcor.ora.list)
@@ -702,7 +744,7 @@ overlap_analysis.poscor <- overlap_analysis_data %>%
   left_join(mirna.poscor.ora.df.combined, by = c("miRNA" = "miRNA", "TF" = "ID"))%>%
   dplyr::filter(!is.na(poscor_ora_pval))
 
-# multiple hypothesis test adjusment
+# multiple hypothesis test adjustment
 p.val.df <- data.frame(pval = overlap_analysis.negcor$negcor_ora_pval, group = "negcor") %>%
   rbind(data.frame(pval = overlap_analysis.poscor$poscor_ora_pval, group = "poscor")) %>%
   mutate(adj.pval = p.adjust(pval, method = "BH"))
@@ -715,6 +757,17 @@ overlap_analysis.negcor.sig <- overlap_analysis.negcor %>%
 
 overlap_analysis.poscor.sig <- overlap_analysis.poscor %>%
   dplyr::filter(poscor_ora_pval.adj < 0.05)
-
-# save.image("TF_mRNA/BRCA_20250509.Rdata")
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+

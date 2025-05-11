@@ -2,11 +2,12 @@
 .Rhistory
 .RData
 .Ruserdata
+.DS_Store
 
 
 data_files/TCGA-BRCA/*.RDS
-data_files/TCGA-BRCA/rNA_filtered_data_v2.csv
-data_files/TCGA-BRCA/miRNA_filtered_data_v2.csv
+data_files/TCGA-BRCA/rNA_filtered_data.csv
+data_files/TCGA-BRCA/miRNA_filtered_data.csv
 data_files/TCGA-BRCA/TCGA_BRCA_mRNA_miRNA_sig_cor.csv
 
 data_files/TCGA-SKCM
