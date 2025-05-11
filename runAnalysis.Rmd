@@ -664,9 +664,9 @@ miR.direct.targets <- read_csv(file.path(input_data_study_dir, "miRNA_direct_tar
 
 
 ```{r}
-bg_geneset <- data.frame(TF = "background", 
+bg_geneset <- data.frame(TF = "background",
                          TF_targets = dplyr::filter(gene_mapping, gene_id %in%
-                                                      rownames(rna_analysis))$gene_symbol) 
+                                                      rownames(rna_analysis))$gene_symbol)
 
 TERM2GENE <- TF.target.df %>%
   dplyr::filter(TF_targets %in% bg_geneset$TF_targets) %>%
@@ -680,52 +680,52 @@ mirna.poscor.ora.list <- list()
 
 
 for (mirna in unique(overlap_analysis_data$miRNA)){
-  
+
   direct_targets <- miR.direct.targets %>%
     filter(miRNA == mirna) %>%
     pull(target_symbol)
 
-  mirna_cor_genes_neg <- cor_result_sig %>% 
+  mirna_cor_genes_neg <- cor_result_sig %>%
     filter(miRNA == mirna & coef < 0 & !(RNA_symbol %in% direct_targets))
-  
-  mirna_cor_genes_pos <- cor_result_sig %>% 
+
+  mirna_cor_genes_pos <- cor_result_sig %>%
     filter(miRNA == mirna & coef > 0 & !(RNA_symbol %in% direct_targets))
-  
+
   # ora with neg.cor genes
   mirna.negcor.ora <- enricher(gene = mirna_cor_genes_neg$RNA_symbol,
                   pvalueCutoff = 1,
                   pAdjustMethod = "BH",
-                  qvalueCutoff = 1, 
+                  qvalueCutoff = 1,
                   universe = bg_geneset$TF_targets,
                   TERM2GENE = TERM2GENE,
                   minGSSize = 0,
                   maxGSSize = (nrow(bg_geneset)-2))
-  
+
   mirna.negcor.ora.list[[mirna]] <- mirna.negcor.ora@result %>%
                                     mutate(miRNA = mirna) %>%
                                     dplyr::select(miRNA, ID, BgRatio, GeneRatio,
                                                   geneID, pvalue, qvalue) %>%
-                                    dplyr::rename(TF_target_BgRatio = BgRatio, 
+                                    dplyr::rename(TF_target_BgRatio = BgRatio,
                                                   negcor_GeneRatio = GeneRatio,
                                                   negcor_overlap_geneID = geneID,
                                                   negcor_ora_pval = pvalue,
                                                   negcor_ora_qval = qvalue)
-  
+
    # ora with pos.cor genes
    mirna.poscor.ora <- enricher(gene = mirna_cor_genes_pos$RNA_symbol,
                   pvalueCutoff = 1,
                   pAdjustMethod = "BH",
-                  qvalueCutoff = 1, 
+                  qvalueCutoff = 1,
                   universe = bg_geneset$TF_targets,
                   TERM2GENE = TERM2GENE,
                   minGSSize = 0,
                   maxGSSize = (nrow(bg_geneset)-2))
-  
+
   mirna.poscor.ora.list[[mirna]] <-mirna.poscor.ora@result %>%
                                     mutate(miRNA = mirna) %>%
                                     dplyr::select(miRNA, ID, BgRatio, GeneRatio,
                                                   geneID, pvalue, qvalue) %>%
-                                    dplyr::rename(TF_target_BgRatio = BgRatio, 
+                                    dplyr::rename(TF_target_BgRatio = BgRatio,
                                                   poscor_GeneRatio = GeneRatio,
                                                   poscor_overlap_geneID = geneID,
                                                   poscor_ora_pval = pvalue,
@@ -757,6 +757,12 @@ overlap_analysis.negcor.sig <- overlap_analysis.negcor %>%
 
 overlap_analysis.poscor.sig <- overlap_analysis.poscor %>%
   dplyr::filter(poscor_ora_pval.adj < 0.05)
+
+write.csv(overlap_analysis.poscor.sig, file.path(input_data_study_dir, "overlap_analysis_poscor_sig.csv"),
+          row.names = F)
+
+write.csv(overlap_analysis.negcor.sig, file.path(input_data_study_dir, "overlap_analysis_negcor_sig.csv"),
+          row.names = F)
 ```
 
 
