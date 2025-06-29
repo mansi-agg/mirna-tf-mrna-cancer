@@ -36,7 +36,7 @@ library(multiMiR) # For miRNA targets
 library(ggplot2)
 library(ggrepel)
 # library("cowplot")
-# library("RColorBrewer")
+library("RColorBrewer")
 # library("colormap")
 
 # library("ggnewscale")
@@ -52,6 +52,9 @@ input_data_common_dir <- file.path(here(), "data_files")
 input_data_study_dir <- file.path(here(), "data_files", study)
 results_save_dir <- file.path(here(), "data_files", study)
 plots_save_dir <- file.path(here(), "data_files", study, "plots")
+
+rna_data_rds <- "BRCA-rna_data.RDS"
+mirna_data_rds <- "BRCA-mirna_data.RDS"
 
 # Data filters
 expression_threshold <- 60
@@ -120,8 +123,8 @@ miRNA sequencing data:
 We are  loading the gene expression and miR data that we already have downloaded.
 \
 ```{r, echo=FALSE}
-rna_data <- readRDS(file.path(input_data_study_dir, "BRCA-rna_data_.RDS"))
-mirna_data <- readRDS(file.path(input_data_study_dir, "BRCA-mirna_data.RDS"))
+rna_data <- readRDS(file.path(input_data_study_dir, rna_data_rds))
+mirna_data <- readRDS(file.path(input_data_study_dir, mirna_data_rds))
 ```
 
 
@@ -149,7 +152,7 @@ Cleaning miR data for further analysis - making the column name of `miRNA`
 expression the same as `RNA` expression.
 \
 ```{r}
-# select RPM of miRNA for corrolation analysis
+# select RPM of miRNA for correlation analysis
 miRNA_analysis <-  mirna_data %>%
               dplyr::select(miRNA_ID, contains("reads_per_million_miRNA_mapped"))
 
@@ -257,11 +260,11 @@ miRNA_analysis <- miRNA_analysis %>% mutate_all(~ log2(. + 1))
 When reading data again:
 
 ```{r}
-# rna_analysis <- read_csv(file.path(input_data_study_dir, "rNA_filtered_data.csv")) %>%
-#   tibble::column_to_rownames(var = colnames(.)[1])
-# 
-# miRNA_analysis <- read_csv(file.path(input_data_study_dir, "miRNA_filtered_data.csv")) %>%
-#   tibble::column_to_rownames(var = colnames(.)[1])
+rna_analysis <- read_csv(file.path(input_data_study_dir, "rNA_filtered_data.csv")) %>%
+  tibble::column_to_rownames(var = colnames(.)[1])
+
+miRNA_analysis <- read_csv(file.path(input_data_study_dir, "miRNA_filtered_data.csv")) %>%
+  tibble::column_to_rownames(var = colnames(.)[1])
 ```
 
 
@@ -590,37 +593,40 @@ Now, for each TF, we only keep target genes that have peaks in at least 50% cell
 we set `gene_peaks_in_cell_lines_threshold` for this.
 
 ```{r}
-TF.target.list <- list()
-TF_target_file_suffix <- "_hg38_TSS5kb.tsv"
+# TF.target.list <- list()
+# TF_target_file_suffix <- "_hg38_TSS5kb.tsv"
+# 
+# for(TF in TF_available){
+#   TF.target.file <- read.table(paste(TF_targets_path, "/", TF, TF_target_file_suffix, sep = ""), header = TRUE, sep = "\t")
+#   names(TF.target.file) <- gsub("\\..*","", names(TF.target.file))
+#   
+#   # if any column are breast cancer cell lines
+#   if (sum(names(TF.target.file) %in% cancer_cell_lines)){
+#     TF.target.file <- TF.target.file[, c(1, which(names(TF.target.file) %in% cancer_cell_lines))] 
+#     
+#     TF.target.file <- TF.target.file %>%
+#       mutate(consensus = rowMeans(dplyr::select(., -1) != 0)) %>%
+#       dplyr::filter(consensus>=gene_peaks_in_cell_lines_threshold)
+#     TF.target.list[[TF]] <- TF.target.file$Target_genes
+#   }
+# }
+# 
+# biological_replicates$TF <- biological_replicates$`Track type`
+# 
+# TF.target.gene.count <- lapply(TF.target.list, length) %>% as.data.frame() %>% t()
+# 
+# TF.target.gene.count <- TF.target.gene.count %>%
+#   as.data.frame() %>%
+#   dplyr::rename(target.count = V1) %>%
+#   mutate(TF = rownames(TF.target.gene.count)) %>%
+#   left_join(biological_replicates, by = ("TF")) %>%
+#   dplyr::rename(replicate.count = Count) %>%
+#   dplyr::select(c("TF", "replicate.count", "target.count"))
 
-for(TF in TF_available){
-  TF.target.file <- read.table(paste(TF_targets_path, "/", TF, TF_target_file_suffix, sep = ""), header = TRUE, sep = "\t")
-  names(TF.target.file) <- gsub("\\..*","", names(TF.target.file))
-  
-  # if any column are breast cancer cell lines
-  if (sum(names(TF.target.file) %in% cancer_cell_lines)){
-    TF.target.file <- TF.target.file[, c(1, which(names(TF.target.file) %in% cancer_cell_lines))] 
-    
-    TF.target.file <- TF.target.file %>%
-      mutate(consensus = rowMeans(dplyr::select(., -1) != 0)) %>%
-      dplyr::filter(consensus>=gene_peaks_in_cell_lines_threshold)
-    TF.target.list[[TF]] <- TF.target.file$Target_genes
-  }
-}
 
-# TF.target.list[["CTCF"]] <- NULL ## remove TF with no target from the list
+# write.csv(TF.target.gene.count, file.path(results_save_dir, "TF_target_gene_count.csv"), row.names = F)
 
-biological_replicates$TF <- biological_replicates$`Track type`
-
-TF.target.gene.count <- lapply(TF.target.list, length) %>% as.data.frame() %>% t()
-
-TF.target.gene.count <- TF.target.gene.count %>%
-  as.data.frame() %>%
-  dplyr::rename(target.count = V1) %>%
-  mutate(TF = rownames(TF.target.gene.count)) %>%
-  left_join(biological_replicates, by = ("TF")) %>%
-  dplyr::rename(replicate.count = Count) %>%
-  dplyr::select(c("TF", "replicate.count", "target.count"))
+TF.target.gene.count <- read_csv(file.path(input_data_study_dir, "TF_target_gene_count.csv"))
 
 # check: no linear relationship between TF target count and TF replicate count
 ggplot(TF.target.gene.count, aes(x=log2(replicate.count), y=log2(target.count))) +
@@ -631,19 +637,20 @@ ggplot(TF.target.gene.count, aes(x=log2(replicate.count), y=log2(target.count)))
   theme_minimal()
 
 spearman.cor <- cor.test(TF.target.gene.count$replicate.count, TF.target.gene.count$target.count, method = "spearman")
+# 
+# TF.target.df <- data.frame(TF = c(), target_genes = c())
+# TF.target.df <- do.call(rbind, lapply(names(TF.target.list), function(tf) {data.frame(TF = tf, TF_targets = TF.target.list[[tf]], stringsAsFactors = FALSE)})) 
 
-TF.target.df <- data.frame(TF = c(), target_genes = c())
-TF.target.df <- do.call(rbind, lapply(names(TF.target.list), function(tf) {data.frame(TF = tf, TF_targets = TF.target.list[[tf]], stringsAsFactors = FALSE)})) 
+# write.csv(TF.target.df, file.path(results_save_dir, "TF_target_df.csv"), row.names = F)
+
+TF.target.df <- read_csv(file.path(input_data_study_dir, "TF_target_df.csv"))
 ``` 
 
 
-#### 5.1 Over-representation analysis (needs to be updated)
+### 5 Over-representation analysis
 
-For each TF-miRNA pair, calculate 
-1) overlap between miRNA-correlated genes and TF targets
-2) overlap between the overlapping geneset and miRNA direct targets
-
-We remove miR's direct targets in the overlapping gene set and then run over-representation analysis.
+For each TF-miRNA pair, we remove miR's direct targets in the overlapping gene set 
+and then run over-representation analysis.
 
 
 ```{r}
@@ -664,107 +671,633 @@ miR.direct.targets <- read_csv(file.path(input_data_study_dir, "miRNA_direct_tar
 
 
 ```{r}
-bg_geneset <- data.frame(TF = "background",
-                         TF_targets = dplyr::filter(gene_mapping, gene_id %in%
-                                                      rownames(rna_analysis))$gene_symbol)
+# bg_geneset <- data.frame(TF = "background",
+#                          TF_targets = dplyr::filter(gene_mapping, gene_id %in%
+#                                                       rownames(rna_analysis))$gene_symbol)
+# 
+# TERM2GENE <- TF.target.df %>%
+#   dplyr::filter(TF_targets %in% bg_geneset$TF_targets) %>%
+#   rbind(bg_geneset)
+# 
+# overlap_analysis_data <- overlap_analysis_data %>%
+#   dplyr::filter(TF %in% TF.target.df$TF)
+# 
+# mirna.negcor.ora.list <- list()
+# mirna.poscor.ora.list <- list()
+# 
+# 
+# for (mirna in unique(overlap_analysis_data$miRNA)){
+# 
+#   direct_targets <- miR.direct.targets %>%
+#     filter(miRNA == mirna) %>%
+#     pull(target_symbol)
+# 
+#   mirna_cor_genes_neg <- cor_result_sig %>%
+#     filter(miRNA == mirna & coef < 0 & !(RNA_symbol %in% direct_targets))
+# 
+#   mirna_cor_genes_pos <- cor_result_sig %>%
+#     filter(miRNA == mirna & coef > 0 & !(RNA_symbol %in% direct_targets))
+# 
+#   # ora with neg.cor genes
+#   mirna.negcor.ora <- enricher(gene = mirna_cor_genes_neg$RNA_symbol,
+#                   pvalueCutoff = 1,
+#                   pAdjustMethod = "BH",
+#                   qvalueCutoff = 1,
+#                   universe = bg_geneset$TF_targets,
+#                   TERM2GENE = TERM2GENE,
+#                   minGSSize = 0,
+#                   maxGSSize = (nrow(bg_geneset)-2))
+# 
+#   mirna.negcor.ora.list[[mirna]] <- mirna.negcor.ora@result %>%
+#                                     mutate(miRNA = mirna) %>%
+#                                     dplyr::select(miRNA, ID, BgRatio, GeneRatio,
+#                                                   geneID, pvalue, qvalue) %>%
+#                                     dplyr::rename(TF_target_BgRatio = BgRatio,
+#                                                   negcor_GeneRatio = GeneRatio,
+#                                                   negcor_overlap_geneID = geneID,
+#                                                   negcor_ora_pval = pvalue,
+#                                                   negcor_ora_qval = qvalue)
+# 
+#    # ora with pos.cor genes
+#    mirna.poscor.ora <- enricher(gene = mirna_cor_genes_pos$RNA_symbol,
+#                   pvalueCutoff = 1,
+#                   pAdjustMethod = "BH",
+#                   qvalueCutoff = 1,
+#                   universe = bg_geneset$TF_targets,
+#                   TERM2GENE = TERM2GENE,
+#                   minGSSize = 0,
+#                   maxGSSize = (nrow(bg_geneset)-2))
+# 
+#   mirna.poscor.ora.list[[mirna]] <-mirna.poscor.ora@result %>%
+#                                     mutate(miRNA = mirna) %>%
+#                                     dplyr::select(miRNA, ID, BgRatio, GeneRatio,
+#                                                   geneID, pvalue, qvalue) %>%
+#                                     dplyr::rename(TF_target_BgRatio = BgRatio,
+#                                                   poscor_GeneRatio = GeneRatio,
+#                                                   poscor_overlap_geneID = geneID,
+#                                                   poscor_ora_pval = pvalue,
+#                                                   poscor_ora_qval = qvalue)
+# }
+# 
+# mirna.negcor.ora.df.combined <- do.call(rbind, mirna.negcor.ora.list)
+# mirna.poscor.ora.df.combined <- do.call(rbind, mirna.poscor.ora.list)
+# 
+# # match ora to TF-miRNA pairs
+# overlap_analysis.negcor <- overlap_analysis_data %>%
+#   left_join(mirna.negcor.ora.df.combined, by = c("miRNA" = "miRNA", "TF" = "ID")) %>%
+#   dplyr::filter(!is.na(negcor_ora_pval))
+# 
+# overlap_analysis.poscor <- overlap_analysis_data %>%
+#   left_join(mirna.poscor.ora.df.combined, by = c("miRNA" = "miRNA", "TF" = "ID"))%>%
+#   dplyr::filter(!is.na(poscor_ora_pval))
+# 
+# # multiple hypothesis test adjustment
+# p.val.df <- data.frame(pval = overlap_analysis.negcor$negcor_ora_pval, group = "negcor") %>%
+#   rbind(data.frame(pval = overlap_analysis.poscor$poscor_ora_pval, group = "poscor")) %>%
+#   mutate(adj.pval = p.adjust(pval, method = "BH"))
+# 
+# overlap_analysis.negcor$negcor_ora_pval.adj <- dplyr::filter(p.val.df, group == "negcor")$adj.pval
+# overlap_analysis.poscor$poscor_ora_pval.adj <- dplyr::filter(p.val.df, group == "poscor")$adj.pval
+# 
+# overlap_analysis.negcor.sig <- overlap_analysis.negcor %>%
+#   dplyr::filter(negcor_ora_pval.adj < 0.05)
+# 
+# overlap_analysis.poscor.sig <- overlap_analysis.poscor %>%
+#   dplyr::filter(poscor_ora_pval.adj < 0.05)
+# 
+# write.csv(overlap_analysis.poscor.sig, file.path(input_data_study_dir, "overlap_analysis_poscor_sig.csv"),
+#           row.names = F)
+# 
+# write.csv(overlap_analysis.negcor.sig, file.path(input_data_study_dir, "overlap_analysis_negcor_sig.csv"),
+#           row.names = F)
 
-TERM2GENE <- TF.target.df %>%
-  dplyr::filter(TF_targets %in% bg_geneset$TF_targets) %>%
-  rbind(bg_geneset)
-
-overlap_analysis_data <- overlap_analysis_data %>%
-  dplyr::filter(TF %in% TF.target.df$TF)
-
-mirna.negcor.ora.list <- list()
-mirna.poscor.ora.list <- list()
-
-
-for (mirna in unique(overlap_analysis_data$miRNA)){
-
-  direct_targets <- miR.direct.targets %>%
-    filter(miRNA == mirna) %>%
-    pull(target_symbol)
-
-  mirna_cor_genes_neg <- cor_result_sig %>%
-    filter(miRNA == mirna & coef < 0 & !(RNA_symbol %in% direct_targets))
-
-  mirna_cor_genes_pos <- cor_result_sig %>%
-    filter(miRNA == mirna & coef > 0 & !(RNA_symbol %in% direct_targets))
-
-  # ora with neg.cor genes
-  mirna.negcor.ora <- enricher(gene = mirna_cor_genes_neg$RNA_symbol,
-                  pvalueCutoff = 1,
-                  pAdjustMethod = "BH",
-                  qvalueCutoff = 1,
-                  universe = bg_geneset$TF_targets,
-                  TERM2GENE = TERM2GENE,
-                  minGSSize = 0,
-                  maxGSSize = (nrow(bg_geneset)-2))
-
-  mirna.negcor.ora.list[[mirna]] <- mirna.negcor.ora@result %>%
-                                    mutate(miRNA = mirna) %>%
-                                    dplyr::select(miRNA, ID, BgRatio, GeneRatio,
-                                                  geneID, pvalue, qvalue) %>%
-                                    dplyr::rename(TF_target_BgRatio = BgRatio,
-                                                  negcor_GeneRatio = GeneRatio,
-                                                  negcor_overlap_geneID = geneID,
-                                                  negcor_ora_pval = pvalue,
-                                                  negcor_ora_qval = qvalue)
-
-   # ora with pos.cor genes
-   mirna.poscor.ora <- enricher(gene = mirna_cor_genes_pos$RNA_symbol,
-                  pvalueCutoff = 1,
-                  pAdjustMethod = "BH",
-                  qvalueCutoff = 1,
-                  universe = bg_geneset$TF_targets,
-                  TERM2GENE = TERM2GENE,
-                  minGSSize = 0,
-                  maxGSSize = (nrow(bg_geneset)-2))
-
-  mirna.poscor.ora.list[[mirna]] <-mirna.poscor.ora@result %>%
-                                    mutate(miRNA = mirna) %>%
-                                    dplyr::select(miRNA, ID, BgRatio, GeneRatio,
-                                                  geneID, pvalue, qvalue) %>%
-                                    dplyr::rename(TF_target_BgRatio = BgRatio,
-                                                  poscor_GeneRatio = GeneRatio,
-                                                  poscor_overlap_geneID = geneID,
-                                                  poscor_ora_pval = pvalue,
-                                                  poscor_ora_qval = qvalue)
-}
-
-mirna.negcor.ora.df.combined <- do.call(rbind, mirna.negcor.ora.list)
-mirna.poscor.ora.df.combined <- do.call(rbind, mirna.poscor.ora.list)
-
-# match ora to TF-miRNA pairs
-overlap_analysis.negcor <- overlap_analysis_data %>%
-  left_join(mirna.negcor.ora.df.combined, by = c("miRNA" = "miRNA", "TF" = "ID")) %>%
-  dplyr::filter(!is.na(negcor_ora_pval))
-
-overlap_analysis.poscor <- overlap_analysis_data %>%
-  left_join(mirna.poscor.ora.df.combined, by = c("miRNA" = "miRNA", "TF" = "ID"))%>%
-  dplyr::filter(!is.na(poscor_ora_pval))
-
-# multiple hypothesis test adjustment
-p.val.df <- data.frame(pval = overlap_analysis.negcor$negcor_ora_pval, group = "negcor") %>%
-  rbind(data.frame(pval = overlap_analysis.poscor$poscor_ora_pval, group = "poscor")) %>%
-  mutate(adj.pval = p.adjust(pval, method = "BH"))
-
-overlap_analysis.negcor$negcor_ora_pval.adj <- dplyr::filter(p.val.df, group == "negcor")$adj.pval
-overlap_analysis.poscor$poscor_ora_pval.adj <- dplyr::filter(p.val.df, group == "poscor")$adj.pval
-
-overlap_analysis.negcor.sig <- overlap_analysis.negcor %>%
-  dplyr::filter(negcor_ora_pval.adj < 0.05)
-
-overlap_analysis.poscor.sig <- overlap_analysis.poscor %>%
-  dplyr::filter(poscor_ora_pval.adj < 0.05)
-
-write.csv(overlap_analysis.poscor.sig, file.path(input_data_study_dir, "overlap_analysis_poscor_sig.csv"),
-          row.names = F)
-
-write.csv(overlap_analysis.negcor.sig, file.path(input_data_study_dir, "overlap_analysis_negcor_sig.csv"),
-          row.names = F)
+# overlap_analysis.poscor.sig <- read_csv(file.path(input_data_study_dir, "overlap_analysis_poscor_sig.csv"))
+# overlap_analysis.negcor.sig <- read_csv(file.path(input_data_study_dir, "overlap_analysis_negcor_sig.csv"))
 ```
 
+
+
+### 6. Visualisations
+
+
+
+```{r}
+get_top_cor_stats <- function(overlap_df, cor_result, prefix) {
+  top_cor_gene <- list()
+  top_cor_coef <- list()
+  avg_cor_coef <- list()
+
+  pb <- txtProgressBar(min = 0, max = nrow(overlap_df), style = 3)
+
+  for (i in 1:nrow(overlap_df)) {
+    setTxtProgressBar(pb, i)
+
+    gene_list <- unlist(strsplit(overlap_df[[paste0(prefix, "_overlap_geneID")]][i], "/"))
+
+    cor_pairs <- cor_result %>%
+      filter(miRNA == overlap_df$miRNA[i], RNA_symbol %in% gene_list)
+
+    if (prefix == "poscor"){
+     top_val <- max(cor_pairs$coef) 
+    } else {
+      top_val <- min(cor_pairs$coef) 
+    }
+
+    top_cor_gene[[i]] <- cor_pairs %>% filter(coef == top_val) %>% pull(RNA_symbol)
+    top_cor_coef[[i]] <- top_val
+    avg_cor_coef[[i]] <- mean(cor_pairs$coef)
+  }
+
+  close(pb)
+
+  overlap_df <- overlap_df %>%
+    mutate(
+      top_cor_gene = unlist(top_cor_gene),
+      top_cor_coef = unlist(top_cor_coef),
+      avg_cor_coef = unlist(avg_cor_coef)
+    )
+  
+  epsilon <- 1e-10  # small value to avoid log(0)
+  
+  # Filter and mutate input df
+  overlap_df <- overlap_df %>%
+    filter(.data[[paste0(prefix, "_ora_pval.adj")]] < 0.05) %>%
+    mutate(
+      qval_plot = -log10(.data[[paste0(prefix, "_ora_pval.adj")]] + epsilon),
+      miR_TF = paste(gsub("^hsa-", "", miRNA), " - ", TF)
+    )
+  
+  return(overlap_df)
+}
+```
+
+```{r}
+# Run for both data frames
+# overlap_analysis.poscor.sig <- get_top_cor_stats(overlap_analysis.poscor.sig, cor_result_sig, "poscor")
+# overlap_analysis.negcor.sig <- get_top_cor_stats(overlap_analysis.negcor.sig, cor_result_sig, "negcor")
+```
+
+```{r}
+# write.csv(overlap_analysis.poscor.sig, file.path(input_data_study_dir, "overlap_analysis_poscor_sig.csv"),
+#           row.names = F)
+# 
+# write.csv(overlap_analysis.negcor.sig, file.path(input_data_study_dir, "overlap_analysis_negcor_sig.csv"),
+          # row.names = F)
+
+overlap_analysis.poscor.sig <- read_csv(file.path(input_data_study_dir, "overlap_analysis_poscor_sig.csv"))
+overlap_analysis.negcor.sig <- read_csv(file.path(input_data_study_dir, "overlap_analysis_negcor_sig.csv"))
+```
+
+
+#### 6.1 miRNA - TF top pairs
+
+```{r}
+plot_top_mir_tf_pairs <- function(df, title, y_limit = 10.5, top_n = 5, type = "pos") {
+  df <- as.data.frame(df)
+  
+  if (type == "neg") {
+    df <- df %>% mutate(top_cor_coef = abs(top_cor_coef))
+    point_color <- "#9C354B"
+    y_label <- expression(-log[10](qvalue))
+    x_label <- "Absolute Correlation Coefficient of \nTop Correlated Gene"
+  } else {
+    point_color <- "#0D84CD"
+    y_label <- expression(-log[10](qvalue))
+    x_label <- "Correlation Coefficient of \nTop Correlated Gene"
+  }
+  
+  top_pairs <- df %>%
+    arrange(desc(top_cor_coef), qval_plot) %>%
+    head(top_n)
+  
+  p <- ggplot(df, aes(x = top_cor_coef, y = qval_plot)) +
+    geom_point(color = point_color, size = 2) +
+    scale_y_continuous(limits = c(0, y_limit)) +
+    geom_text_repel(data = top_pairs,
+                    aes(label = miR_TF),
+                    force = 1,
+                    direction = "both",
+                    segment.size = 0.2,
+                    color = "black",
+                    nudge_x = 0.1, nudge_y = 0.1,
+                    max.overlaps = 1000, size = 3) +
+    labs(
+      x = x_label,
+      y = y_label,
+      title = title
+    ) +
+    theme_minimal()
+  
+  ggsave(plot = p, filename = file.path(plots_save_dir, paste0(title, ".png")), width = 8, height =
+           5)
+  
+  return(p)
+}
+
+```
+
+
+```{r}
+plot_top_mir_tf_pairs(overlap_analysis.poscor.sig, "Top miR-TF pairs - Positive Correlation", type = "pos")
+```
+
+
+```{r}
+plot_top_mir_tf_pairs(overlap_analysis.negcor.sig, "Top miR-TF pairs - Negative Correlation", type = "neg")
+```
+
+#### 6.2 Bar plot - miRNAs based on correlation with genes and overlap with TF targets
+
+```{r}
+correlation_type <- list("miRNAs with positively correlated genes",
+                         "miRNAs with negatively correlated genes")
+
+correlation_type <-  unlist(rep(correlation_type, each = 3))
+
+condition <- list(
+  "Not targeting TFs",
+  "Targets TF but no significant overlap",
+  "Targets TF and significant overlap"
+)
+
+condition <-  unlist(rep(list(condition), each = 2))
+
+plot_data <- data.frame(correlation_type, condition)
+
+miRs_no_TFs <- length(setdiff(unique(cor_result_sig$miRNA), unique(overlap_analysis_data$miRNA)))
+
+miR_pos_no_sig_overlap <- length(unique(overlap_analysis_data$miRNA)) - length(unique(overlap_analysis.poscor.sig$miRNA))
+
+miR_pos_overlap_sig_num <- length(unique(overlap_analysis.poscor.sig$miRNA))
+
+miR_neg_no_sig_overlap <- length(unique(overlap_analysis_data$miRNA)) - length(unique(overlap_analysis.negcor.sig$miRNA))
+
+miR_neg_overlap_sig_num <- length(unique(overlap_analysis.negcor.sig$miRNA))
+
+plot_data <- plot_data %>%
+  mutate(value = case_when(
+    correlation_type == "miRNAs with positively correlated genes" & condition == "Targets TF and significant overlap" ~ miR_pos_overlap_sig_num,
+    correlation_type == "miRNAs with positively correlated genes" & condition == "Targets TF but no significant overlap" ~ miR_pos_no_sig_overlap,
+    correlation_type == "miRNAs with positively correlated genes" & condition == "Not targeting TFs" ~ miRs_no_TFs,
+     correlation_type == "miRNAs with negatively correlated genes" & condition == "Targets TF and significant overlap" ~ miR_neg_overlap_sig_num,
+    correlation_type == "miRNAs with negatively correlated genes" & condition == "Targets TF but no significant overlap" ~ miR_neg_no_sig_overlap,
+    correlation_type == "miRNAs with negatively correlated genes" & condition == "Not targeting TFs" ~ miRs_no_TFs,
+    TRUE ~ NA_real_  # For other cases
+  ))
+
+# Reorder levels of "condition" factor
+plot_data$condition <- fct_relevel(plot_data$condition,
+                                   "Targets TF and significant overlap",
+                                  "Targets TF but no significant overlap",
+                                  "Not targeting TFs")
+
+plot_data <- plot_data %>%
+  dplyr::filter(value > 0)
+
+```
+
+
+```{r}
+title <- "Distribution of miRNAs Based on Correlation with Genes and Overlap with TF Targets"
+
+p <- ggplot(plot_data, aes(x=correlation_type, y=value, fill=condition)) +
+  geom_bar(stat="identity") +
+  geom_text(aes(label = value), color = "white", 
+            position = position_stack(vjust = 0.5), size = 3) +
+  theme_minimal() +
+  scale_fill_manual(values = c("#1a9850", "#4575b4", "#999999")) +
+  scale_x_discrete(labels = function(x) str_wrap(x, width = 25)) +
+  labs(x = "", 
+       y = "Number of miRs",
+       fill = "")
+
+ggsave(plot = p, filename = file.path(plots_save_dir, paste0(title, ".png")), width = 8, height = 5)
+
+p
+```
+
+#### 6.3 Interaction plots
+
+
+```{r}
+rna_exp <- rna_analysis %>%
+  dplyr::mutate(mean_exp = rowMeans(across(everything())),
+                 RNA = row.names(.)) %>%
+  dplyr::mutate(z_transform_exp = scale(mean_exp)[,1]) %>%
+  dplyr::select(RNA, z_transform_exp) %>%
+  left_join(cor_result_sig %>% dplyr::select(RNA, RNA_symbol), by = "RNA") %>%
+  distinct(RNA, .keep_all = TRUE)
+
+miRNA_exp <- miRNA_analysis %>%
+  dplyr::mutate(mean_exp = rowMeans(across(everything())),
+                 miRNA = row.names(.)) %>%
+  dplyr::mutate(z_transform_exp = scale(mean_exp)[,1]) %>%
+  dplyr::select(miRNA, z_transform_exp)
+```
+
+```{r}
+experiments <- c("luciferase", "western blot")
+
+validated_miR_TF <- interactions_TFs %>% 
+  dplyr::mutate(experiment_lower = tolower(experiment)) %>%
+  dplyr::filter(str_detect(experiment_lower, paste(experiments, collapse = "|"))) %>%
+  dplyr::mutate(miR_TF = paste(sub("hsa-", "", miRNA), " - ", target_symbol)) %>%
+  dplyr::select(miR_TF, experiment_lower) %>%
+  dplyr::filter(!is.na(experiment_lower)) %>%
+  group_by(miR_TF) %>% slice(1)
+
+interactions_plot <- overlap_analysis_data %>%
+  left_join(miRNA_exp, by = c("miRNA" = "miRNA")) %>%
+  dplyr::rename(miRNA_exp = z_transform_exp) %>%
+  left_join(rna_exp %>% dplyr::select(RNA_symbol, z_transform_exp), by = c("TF" = "RNA_symbol")) %>%
+  dplyr::rename(TF_exp = z_transform_exp) %>%
+  dplyr::select(miRNA, TF, miRNA_exp, TF_exp) %>%
+  dplyr::arrange(miRNA, TF) %>%
+  dplyr::mutate(miR_TF = paste(sub("hsa-", "", miRNA), " - ", TF))
+
+interactions_plot <- left_join(interactions_plot, validated_miR_TF, by = "miR_TF") %>%
+  dplyr::filter(!is.na(experiment_lower))
+
+
+overlap_result_pos_sig <- overlap_analysis.poscor.sig %>%
+  dplyr::arrange(desc(top_cor_coef), poscor_ora_pval.adj) %>%
+  dplyr::rename(qvalue = poscor_ora_pval.adj) %>%
+  dplyr::select(miRNA, TF, miR_TF, qvalue) %>%
+  dplyr::arrange(miRNA, TF)
+
+
+overlap_result_neg_sig <- overlap_analysis.negcor.sig %>%
+  dplyr::arrange(desc(top_cor_coef), negcor_ora_pval.adj) %>%
+  dplyr::rename(qvalue = negcor_ora_pval.adj) %>%
+  dplyr::select(miRNA, TF, miR_TF, qvalue) %>%
+  dplyr::arrange(miRNA, TF)
+
+```
+
+
+
+
+```{r}
+# Unified plotting function for interaction plot
+plot_interactions <- function(interactions_plot, overlap_result, title, sig_color) {
+  plot_data <- interactions_plot %>%
+    dplyr::mutate(connection = if_else(miR_TF %in% unique(overlap_result$miR_TF),
+                                       "Significant", "Not Significant"))
+
+  interactions_long <- reshape2::melt(plot_data, na.rm = FALSE) %>%
+    dplyr::filter(!is.na(value)) %>%
+    dplyr::mutate(variable = case_when(
+      variable == "miRNA_exp" ~ "miRNA",
+      variable == "TF_exp" ~ "TF",
+      TRUE ~ variable
+    ))
+
+  top_miRs <- interactions_long %>%
+    dplyr::filter(connection == "Significant") %>%
+    group_by(miRNA) %>%
+    summarise(count = n()) %>%
+    arrange(desc(count)) %>%
+    head(5)
+
+  top_miRs_data <- interactions_long %>%
+    filter(miRNA %in% top_miRs$miRNA, variable == "miRNA") %>%
+    distinct(miRNA, .keep_all = TRUE)
+
+  top_TFs <- interactions_long %>%
+    dplyr::filter(connection == "Significant") %>%
+    group_by(TF) %>%
+    summarise(count = n()) %>%
+    arrange(desc(count)) %>%
+    head(5)
+
+  top_TFs_data <- interactions_long %>%
+    filter(TF %in% top_TFs$TF, variable == "TF") %>%
+    distinct(TF, .keep_all = TRUE)
+
+  pd <- position_dodge(0.2)
+
+  p <- ggplot(interactions_long, aes(x = variable, y = value, group = miR_TF)) + 
+  geom_point(alpha = 0.4, aes(color = variable), position = pd, show.legend = F) + 
+  scale_color_manual(values = c("miRNA" = "#89b7d7",
+                                "TF" = "#ffbb78"), name = "Gene Type") +
+  geom_text_repel(data = top_miRs_data,
+                  aes(label = miRNA),
+                  # nudge_x = -0.2, nudge_y = 0.1,
+                  position = pd,
+                  force = 1.5,
+                  direction = "both",
+                  segment.size = 0.2,
+                  color = "black",
+                  max.overlaps = 1000, size = 3,
+                  min.segment.length = 0) +
+  geom_text_repel(data = top_TFs_data,
+                  aes(label = TF),
+                  # nudge_x = 0.15, nudge_y = 0.1,
+                  position = position_dodge(0.2),
+                  force = 1.5,
+                  direction = "both",
+                  segment.size = 0.2,
+                  color = "black",
+                  max.overlaps = 1000, size = 3,
+                  min.segment.length = 0) +
+  geom_line(aes(color = connection, alpha = connection), position = pd) + 
+  scale_color_manual(values = c("Significant" = sig_color,
+                                "Not Significant" = "gray"), 
+                     name = "Over-representation \nAnalysis Significance") +
+  scale_alpha_manual(values = c("Significant" = 0.35, "Not Significant" = 0.35)) +
+  labs(x = NULL, y = "Expression Level \n(z-transformed)",
+       title = title) +
+  theme_minimal() +
+  guides(alpha = "none")
+  
+  ggsave(plot = p, filename = file.path(plots_save_dir, paste0(title, ".png")), width = 8, height = 5)
+  
+  return(p)
+}
+```
+
+
+```{r}
+# For positively correlated miR-TF pairs
+plot_interactions(interactions_plot, overlap_result_pos_sig, 
+                  title = "Interaction Plot - miRs with positively correlated genes", 
+                  sig_color = "#8939FD")
+```
+
+```{r}
+# For negatively correlated miR-TF pairs
+plot_interactions(interactions_plot, overlap_result_neg_sig, 
+                  title = "Interaction Plot - miRs with negatively correlated genes", 
+                  sig_color = "#9F0A0C")
+
+```
+
+#### 6.4 miR indirect target bar plots
+
+This code is now not needed as we remove miR's direct targets in the overlapping gene set 
+and then run over-representation analysis.
+
+
+```{r}
+get_miR_indirect_targets <- function(results_df, cor_result_sig, direction, prefix) {
+   
+  interaction_file <- file.path(results_save_dir, paste0("interactions_miR_gene_", direction, ".csv"))
+  
+  if (file.exists(interaction_file)) {
+    cat("Reading existing file...", "\n")
+    interactions_miR_gene_df <- read_csv(interaction_file)
+  } else {
+    interactions_miR_gene <- get_multimir(
+      org = "hsa",
+      mirna = results_df$miRNA,
+      table = "validated",
+      summary = TRUE,
+      use.tibble = TRUE
+    )
+  
+    interactions_miR_gene_df <- as.data.frame(interactions_miR_gene@data) %>%
+      dplyr::mutate(miRNA = tolower(mature_mirna_id))
+  
+    write_csv(interactions_miR_gene_df, interaction_file)
+  }
+  
+
+  results_final_path <- file.path(results_save_dir, paste0("results_", direction, 
+                                                           "miR_indirect_targets.csv")
+                                  )
+  
+  if (file.exists(results_final_path)) {
+    cat("Results already exist, reading... ", "\n")
+    
+    results_df <- read_csv(results_final_path)
+  } else {
+    miR_direct_target_genes <- list()
+    miR_direct_target_genes_prop <- list()
+    
+    miR_indirect_target_genes <- list()
+    miR_indirect_target_genes_prop <- list()
+    
+    top_cor_indirect_gene <- list()
+    top_cor_coef_indirect <- list()
+    avg_cor_coef_indirect <- list()
+    
+    pb <- txtProgressBar(min = 0, max = nrow(results_df), style = 3)
+  
+    for (i in 1:nrow(results_df)) {
+      
+      setTxtProgressBar(pb, i)
+    
+      miR <- results_df$miRNA[i]
+    
+      gene_list <- unlist(strsplit(results_df[[paste0(prefix, "_overlap_geneID")]][i], "/"))
+    
+      interactions_miR <- interactions_miR_gene_df %>%
+        filter(miRNA == miR) %>% pull(target_symbol)
+    
+      common_genes <- intersect(gene_list, interactions_miR)
+    
+      indirect_targets <- setdiff(gene_list, common_genes)
+      # 
+      # cor_pairs <- cor_result_sig %>%
+      #   filter(miRNA == miR, RNA_symbol %in% indirect_targets)
+      
+      # if (direction == "pos"){
+      #  top_val <- max(cor_pairs$coef) 
+      # } else {
+      #   top_val <- min(cor_pairs$coef) 
+      # }
+      # 
+      # top_cor_indirect_gene[[i]] <- cor_pairs %>% filter(coef == top_val) %>% pull(RNA_symbol)
+      # 
+      # top_cor_coef_indirect[[i]] <- top_val
+      # 
+      # avg_cor_coef_indirect[[i]] <- mean(cor_pairs$coef)
+    
+      miR_direct_target_genes[[i]] <- paste(common_genes, collapse = "/")
+      miR_direct_target_genes_prop[[i]] <- length(common_genes) / length(gene_list)
+    
+      miR_indirect_target_genes[[i]] <- paste(indirect_targets, collapse = "/")
+      miR_indirect_target_genes_prop[[i]] <- length(indirect_targets) / length(gene_list)
+      }
+    
+     close(pb)
+      
+      results_df <- results_df %>%
+        mutate(
+                # top_cor_indirect_gene = unlist(top_cor_indirect_gene),
+                # top_cor_coef_indirect = unlist(top_cor_coef_indirect),
+                # avg_cor_coef_indirect = unlist(avg_cor_coef_indirect),
+               miR_direct_target_genes = unlist(miR_direct_target_genes),
+               miR_direct_target_genes_prop = unlist(miR_direct_target_genes_prop),
+               miR_indirect_target_genes = unlist(miR_indirect_target_genes),
+               miR_indirect_target_genes_prop = unlist(miR_indirect_target_genes_prop))
+      
+      write.csv(results_df, file.path(results_save_dir, paste0("results_", direction, "miR_indirect_targets.csv")), 
+                row.names = FALSE)
+  }
+  
+  return(results_df)
+}
+
+```
+
+
+```{r}
+result_pos_miR_indirect_targets <- get_miR_indirect_targets(results_df = overlap_analysis.poscor.sig,
+                                                            cor_result_sig = cor_result_sig,
+                                                            direction = "pos",
+                                                            prefix = "poscor")
+```
+
+````{r}
+result_neg_miR_indirect_targets <- get_miR_indirect_targets(results_df = overlap_analysis.negcor.sig,
+                                                            cor_result_sig = cor_result_sig,
+                                                            direction = "neg",
+                                                            prefix = "negcor")
+```
+
+
+
+```{r}
+
+generate_mir_indirect_targets_bar_plot <- function(results_df){
+  
+  miR_indirect_prop_df <- results_df %>%
+    dplyr::mutate(miR_direct_target_genes_prop_perc = miR_direct_target_genes_prop*100) %>%
+    mutate(interval = cut(miR_direct_target_genes_prop_perc,
+                          breaks = seq(0, 100, by = 5),
+                          labels = paste(seq(0, 95, by = 5), "-", seq(5, 100, by = 5), "%",sep = ""),
+                          include.lowest = TRUE, right = FALSE))
+  
+  # Count the number of occurrences in each interval
+  interval_counts <- miR_indirect_prop_df %>%
+    group_by(interval) %>%
+    summarise(count = n())
+  
+  title <- "miRs direct targets prop count - bar plot (positive)"
+  
+  # Plot the counts using ggplot2
+  p <- ggplot(interval_counts, aes(x = interval, y = count)) +
+    geom_bar(stat = "identity", fill = "#0D84CD", width = 0.6) +
+    geom_text(aes(label = count), 
+              color = "black", 
+              # position = position_stack(vjust = 1.08), 
+              vjust = 0, 
+              # nudge_y = .01, 
+              size = 3.25) +
+    # scale_x_continuous(labels = function(x) paste0(x, "%")) +
+    labs(title = "",
+         x = "\nPercentage of Genes in the Overlapping Gene Set \nthat miRs Directly Target",
+         y = "Count of miR-TF Pairs") +
+    theme_minimal() 
+    # theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  # ggsave(plot = p, filename = paste0("data_files/publication/TCGA-BRCA/plots/", title, ".png"), width = 8, height = 5)
+  
+  p
+}
+
+```
 
 
 
