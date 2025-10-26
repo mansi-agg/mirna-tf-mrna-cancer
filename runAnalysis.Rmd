@@ -1018,7 +1018,7 @@ p <- ggplot(plot_data, aes(x=correlation_type, y=value, fill=condition)) +
        y = "Number of miRs",
        fill = "", title = title)
 
-# ggsave(plot = p, filename = file.path(plots_save_dir, paste0(title, ".png")), width = 8, height = 5)
+ggsave(plot = p, filename = file.path(plots_save_dir, paste0(title, ".png")), width = 8, height = 5)
 
 p
 ```
