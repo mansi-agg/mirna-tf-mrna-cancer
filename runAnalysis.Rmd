@@ -1,13 +1,13 @@
 ---
 title: "TF-mRNA"
 subtitle: "Exploring microRNA-mRNA Relationships Mediated by Transcription Factors
-  in Breast cancer"
+  in Cancer"
 output: pdf_document
 ---
 
 This is the code base for the project. The input and intermediate files were queried
-from databases or were outputs of analyses have been directly read into the code, however
-steps to retrieve input data and reproduce results have been commented.
+from databases or were outputs of analyses have been directly read into the code, 
+however steps to retrieve input data and reproduce results have been commented.
 
 \
 
@@ -35,11 +35,6 @@ library(multiMiR) # For miRNA targets
 ## Data visualisation
 library(ggplot2)
 library(ggrepel)
-# library("cowplot")
-library("RColorBrewer")
-# library("colormap")
-
-# library("ggnewscale")
 ```
 
 
@@ -487,8 +482,7 @@ length(unique(interactions_TFs$target_symbol))
 Following is the code snippet to download TF-target genes based on a ChIP-seq experiment
 from the [ChIP-Atlas database](https://chip-atlas.org/target_genes).
 \
-The genome was set to `hg19` and `hg38` but the data unavailable for certain TFs was unavailable
-under both genomes.
+Data unavailable for certain TFs was unavailable.
 \
 
 ```{r}
@@ -574,38 +568,27 @@ dim(overlap_analysis_data)
 ## For breast cancer cell lines
 
 # cell_lines_cellosaurus <- read_csv(file.path(input_data_study_dir, "Cell_lines_in_cellosaurus.csv"))
-# 
+#
 # cell_lines_not_in_cellosaurus <- read_csv(file.path(input_data_study_dir, "Cell_lines_not_in_cellosaurus.csv"))
-# 
+#
 # cell_lines_not_in_cellosaurus <- cell_lines_not_in_cellosaurus %>%
 #   filter(`Cancer/Not Cancer` == "Cancer") %>%
 #   dplyr::select(-c(`Cancer/Not Cancer`, Notes))
-# 
+#
 # cancer_cell_lines_data <- rbind(cell_lines_cellosaurus,
 #                                   cell_lines_not_in_cellosaurus)
-# 
+#
 # cancer_cell_lines_data <- cancer_cell_lines_data %>%
 #   distinct()
-# 
+#
 # cancer_cell_lines <- cancer_cell_lines_data$`SRX ID`
-# 
+#
 # write.csv(cancer_cell_lines_data, file.path(results_save_dir, "cancer_cell_lines.csv"),
 #           row.names = F)
 ```
 
 ```{r}
 # # For melanoma cell lines
-
-# cancer_cell_lines_data <- read_csv(file.path(input_data_study_dir, "Breast_Cancer_Cell_Lines.csv"))
-# 
-# cancer_cell_lines <- cancer_cell_lines_data$`SRX ID`
-# 
-# biological_replicates <- cancer_cell_lines_data %>%
-#   dplyr::group_by(cancer_cell_lines_data$`Track type`) %>%
-#   summarise(count = n())
-# 
-# colnames(biological_replicates) <- c("Track type", "Count")
-
 cancer_cell_lines_data <- read_csv(file.path(input_data_study_dir, cell_lines_data))
 
 cancer_cell_lines <- cancer_cell_lines_data$`SRX ID`
@@ -1169,10 +1152,7 @@ plot_interactions <- function(interactions_plot, overlap_result, title, sig_colo
                   size = annot_text_size,
                   min.segment.length = 0) +
   geom_line(color = sig_color, alpha = 0.5, position = pd) + 
-  # scale_color_manual(values = c("Significant" = sig_color,
-  #                               "Not Significant" = "gray"), 
-  #                    name = "Over-representation \nAnalysis Significance") +
-  # scale_alpha_manual(values = c("Significant" = 0.35, "Not Significant" = 0.35)) +
+
   labs(x = NULL, y = "Expression Level \n(z-transformed)",
        # title = title
        ) +
@@ -1204,36 +1184,6 @@ plot_interactions(interactions_plot,
                   sig_color = "#9F0A0C")
 
 ```
-
-#### 6.4 Miscellaneous
-
-
-```{r}
-# library(mediation)
-# 
-# # Extract and align expression vectors
-# miR <- "hsa-mir-934"
-# TF <- "FOXC1"
-# mRNA <- "VGLL1"
-# 
-# expr_df <- data.frame(
-#   miRNA = as.numeric(miRNA_analysis[miR, ]),
-#   TF = as.numeric(rna_analysis[gene_mapping$gene_id[gene_mapping$gene_symbol == TF], ]),
-#   mRNA = as.numeric(rna_analysis[gene_mapping$gene_id[gene_mapping$gene_symbol == mRNA], ])
-# )
-# 
-# 
-# # Run mediation analysis
-# model.M <- lm(TF ~ miRNA, data = expr_df)
-# model.Y <- lm(mRNA ~ miRNA + TF, data = expr_df)
-# med.out <- mediate(model.M, model.Y, treat = "miRNA", mediator = "TF", boot = TRUE, sims = 1000)
-# 
-# summary(med.out)
-
-```
-
-
-
 
 
 
