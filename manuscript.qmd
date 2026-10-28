@@ -1,0 +1,463 @@
+---
+pagetitle: "Transcription factors mediate microRNA-gene relationships in cancer"
+format:
+  html:
+    embed-resources: true
+    toc: false
+    number-sections: false
+    include-in-header:
+      text: |
+        <style>
+          /* Figure captions in a different colour */
+          .figure-caption { color: #1f5f8b; font-size: 0.95em; margin-top: 0.5em; }
+          .ms-figure { margin: 1.5em 0 2em 0; scroll-margin-top: 1em; }
+          .ms-figure img { display: block; margin: 0.5em auto; max-width: 100%; height: auto; }
+          .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em; }
+          /* Panel letters (A, B, C, D) at the top-left of each plot */
+          .panel { position: relative; }
+          .panel::before { content: attr(data-label); position: absolute; top: 0.2em; left: 0.4em;
+                           font-weight: 700; font-size: 1.4em; color: #000; z-index: 1; }
+          /* Reference list: APA hanging indent */
+          .ref-entry { padding-left: 2em; text-indent: -2em; margin-bottom: 0.6em; scroll-margin-top: 1em; }
+          .ref-entry:target, .ms-figure:target { background: #fff6d6; transition: background 0.3s; }
+          a.cite, a.fig-link { text-decoration: none; }
+          a.cite:hover, a.fig-link:hover { text-decoration: underline; }
+        </style>
+---
+
+<!--
+  Converted from manuscript/MicroRNA-TF_2026-02-08_MA.docx.
+  Text, figure numbering and captions are unchanged.
+  In-text citations link to their entry in the reference list (#ref-...),
+  and figure mentions link to the figure (#figure-...).
+  Figures are linked from plots_main/.
+-->
+
+**Title: Transcription factors mediate microRNA-gene relationships in cancer**
+
+**Authors:** Mansi Aggarwal^1^, Dr. Peinan Zhao^2^, Dr. Miles C. Andrews^1^
+
+^1^ Cancer and Host Dynamics Group, School of Translational Medicine, Monash University, Melbourne, Victoria, Australia
+
+^2^ Cancer Development and Treatment Laboratory, School of Translational Medicine, Monash University, Melbourne, Victoria, Australia
+
+
+## ABSTRACT
+
+Background: MicroRNAs (miRNAs) are small RNA molecules that regulate gene expression by binding to specific target sequences on messenger RNAs (mRNAs), leading to translational repression ([Fattore et al., 2017](#ref-fattore2017){.cite}; [Friedman et al., 2009](#ref-friedman2009){.cite}). However, transcription factors (TFs), which are essential for controlling gene networks, are also targeted by miRNA ([Zhao et al., 2016](#ref-zhao2016){.cite}). Conventional methods for identifying miRNA targets often rely on miRNA-mRNA correlations ([Joung et al., 2007](#ref-joung2007){.cite}) and may overlook indirect regulatory relationships, particularly when miRNAs may regulate mRNAs via intermediary TFs.
+
+Results: Using publicly available matched gene (mRNA) and miRNA expression datasets from melanoma (SKCM) and breast cancer (BRCA) samples of The Cancer Genome Atlas, we refined crude miRNA--mRNA correlations by integrating knowledge of experimentally validated miRNA--TF interactions and the gene targets of those TFs. We found miRNAs whose correlated genes were significantly enriched for the gene targets of TFs that were directly regulated by those miRNAs. Importantly, many of these strongly correlated miRNA-mRNA pairs were not supported by evidence of direct miRNA targeting, suggesting indirect regulation through TFs. Numerous candidate miRNA-TF-mRNA triplets were identified across both cancer types.
+
+CONCLUSION: Our findings support a model where TFs act as key intermediaries in miRNA-mRNA regulatory networks. Considering TF-mediated interactions refines the interpretation of sequencing-based correlations and provides new insights into the complexity of gene regulation in cancer biology.
+
+## BACKGROUND
+
+MicroRNAs (miRNAs) and transcription factors (TFs) are two major regulators of gene and protein expression ([Guzzi et al., 2015](#ref-guzzi2015){.cite}). MiRNAs are \~22-nucleotide non-coding RNAs that bind primarily to the 3′ untranslated region of mRNAs to repress their translation or promote degradation ([Hofacker, 2007](#ref-hofacker2007){.cite}). TFs regulate gene expression by binding to specific regulatory elements in the DNA near or within target genes, acting to promote or repress gene transcription ([Chen & Rajewsky, 2007](#ref-chen2007){.cite}; [Suter, 2020](#ref-suter2020){.cite}; [Wang et al., 2015](#ref-wang2015){.cite}).
+
+TFs are central to the aberrant gene regulation in cancer cells where sustained activity supports tumour growth and survival. TFs like NF-κB, STAT3, and HIFs promote tumour progression and resistance in many contexts ([Vishnoi et al., 2020](#ref-vishnoi2020){.cite}), while others such as MITF and STAT family members are implicated in melanoma and breast cancer, respectively. MiRNAs also show distinct tissue-specific and stage-specific expression patterns, with some acting as cancer promoters ("oncomiRs") and others as tumour suppressors ("TS-miRs") ([Arora et al., 2013](#ref-arora2013){.cite}). Importantly, TFs and miRNAs frequently participate in combinatorial gene regulation where a TF and a miRNA co-regulate a gene or each other ([Cui et al., 2007](#ref-cui2007){.cite}).
+
+MiRNA--target interactions supported by luciferase reporter assays or western blotting are considered to have strong experimental evidence, as these techniques can confirm direct binding and pinpoint target regions with high confidence ([Kuhn et al., 2008](#ref-kuhn2008){.cite}, [Hsu et al., 2011](#ref-hsu2011){.cite}).
+
+Standard approaches to identify biologically relevant miRNA-mRNA interactions rely heavily on expression-based inverse correlations using microarray or sequencing transcriptomic datasets ([Joung et al., 2007](#ref-joung2007){.cite}). These methods are insensitive to miRNA-directed translational repression without mRNA degradation, and can miss indirect interactions where miRNAs modulate gene expression through intermediate regulators such as TFs. While some computational and experimental methods infer causality or detect binding ([Le et al., 2013](#ref-le2013){.cite}), they often fail to distinguish direct from indirect TF-mediated effects.
+
+To address this, we examined TFs as potential intermediaries of observed miRNA-mRNA correlations. We hypothesised that miRNAs may regulate mRNAs indirectly first by targeting TFs that then mediate transcriptional regulation of those target genes and thus target gene mRNA abundance. Beginning with crude miRNA-mRNA transcript abundance correlations, we systematically identified instances where a miRNA targets a TF but not the downstream gene targets of that TF, yet is significantly correlated with the mRNA abundance of at least one of those TF gene targets. This approach allowed us to identify candidate miRNA-TF-mRNA regulatory networks consistent with indirect regulation. By considering TFs as potential mediators, our study aimed to provide a more nuanced understanding of the complex regulatory landscape governing gene expression in cancer.
+
+## METHODS
+
+### Sequencing data source and pre-processing
+
+We used data from the SKCM (Skin Cutaneous Melanoma) and BRCA (Breast Invasive Carcinoma) cohorts of The Cancer Genome Atlas (<https://portal.gdc.cancer.gov/projects/TCGA-SKCM> and <https://portal.gdc.cancer.gov/projects/TCGA-BRCA>). Both datasets include miRNA expression profiling by small-RNAseq (available for 452 cases in SKCM, 1207 cases in BRCA) and gene expression profiling by mRNA-seq (available for 473 cases in SKCM, 1231 cases in BRCA). Processed count data summarised at the gene and miRNA level, respectively, were downloaded using the TCGAbiolinks ([Colaprico et al., 2016](#ref-colaprico2016){.cite}) R/Bioconductor package (v2.29.6).
+
+Expression data were cleaned and processed before further analysis as described below and in Supplementary Fig. 1. Gene expression refers to mRNA sequencing-derived abundance quantified as TPM, and microRNA expression refers to mature strand microRNA abundance derived from small RNA sequencing and quantified as RPM.
+
+1.  Protein-coding filter: Gene expression data were filtered to retain only protein-coding transcripts
+
+2.  Sample-ID harmonisation: Sample IDs were matched and made consistent across both datasets
+
+3.  Dataset matching: Only samples with matched gene and miRNA data (SKCM: n=451, BRCA: n=1198) were retained for further analysis
+
+4.  Removal of non-expressed features: Genes and miRNAs with no expression (i.e., TPM or RPM = 0, respectively) across all samples were removed from further consideration
+
+5.  Expression prevalence filter: Low-prevalence species, being genes or miRNAs expressed in less than 40% of samples, were filtered out
+
+6.  Log-transformation: The final expression data matrices were log~2~ transformed after adding a dummy count of 1 to all observations to avoid infinity values, to stabilise variance across different expression levels ([Law et al., 2014](#ref-law2014){.cite}).
+
+For gene expression data, gene symbols and ENSEMBL IDs were retained for downstream analysis.
+
+### Correlation analysis
+
+We calculated the Spearman correlation coefficient and associated statistical significance between each gene and each miRNA for both cohorts using the "rcorr" function in the Hmisc package in R, without any prior assumptions about the data distributions or linearity of correlation ([Siska & Kechris, 2017](#ref-siska2017){.cite}; [Harrell Jr, 2023](#ref-harrell2023){.cite}). Statistical significance was adjusted for multiple comparisons using the Benjamini-Hochberg (BH) procedure to calculate the false discovery rate (FDR). Correlations with an adjusted *p* value of less than 0.05 were retained for further analysis. No magnitude threshold was set for the correlation coefficient.
+
+### Identification of miRNA-TF interactions
+
+A database of known human TFs identified through functional characterisation of over 1600 likely TFs and binding motifs by Lambert et al was downloaded ([Lambert et al., 2018](#ref-lambert2018){.cite}). Potential TF genes were filtered for "Is.TF" = "Yes". We used the multiMiR ([Ru et al., 2014](#ref-ru2014){.cite}) package in R (v1.20.0) to obtain annotated miRNA-target interactions and filtered miRNA validated to target any of the potential TFs by any experimental technique (such as luciferase reporter assays, western blot, RT-PCR, immunohistochemistry, immunoprecipitation).
+
+### Identification of TF target genes
+
+To determine the genes targeted by TFs, we used ChIP-Atlas, a comprehensive web service of consolidated ChIP-seq datasets aligned to a uniform human genome (hg38) prior to peak calling ([Zou et al., 2022](#ref-zou2022){.cite}). Significant peaks indicative of TF-binding sites were identified, and genes with peaks overlapping with transcription start site regions within a specified distance were considered as potential TF targets.
+
+We also curated melanoma and breast cancer cell lines from both ChIP-Atlas metadata and the Cellosaurus ([Bairoch, 2018](#ref-bairoch2018){.cite}) database in order to provide cancer cell type-specific support during identification of TFs of interest. For each TF in the list from [Lambert et al. (2018)](#ref-lambert2018){.cite}, we identified all genes that demonstrated significant TF binding within 5000 base pairs of the gene's TSS. To reduce false positives from individual ChIP-seq experiments, we applied a consensus threshold such that a gene was retained as a TF target only if it showed TF binding in at least 50% of the cancer-specific cell lines with available ChIP-seq data. We did not apply any minimum threshold on the number of ChIP-seq replicates or distinct cell lines represented in the datasets per TF: A Spearman correlation analysis revealed no significant association between the number of biological replicates and the number of target genes identified per TF (Supplementary Fig. 2), indicating that variation in replicate count (e.g. publication biases) did not systematically inflate or deflate TF target gene counts.
+
+### Over-representation analysis
+
+We implemented an over-representation analysis (ORA), using the method described by [Boyle et al., 2004](#ref-boyle2004){.cite} where the inference of statistical significance of overlapping gene sets is calculated using the hypergeometric distribution according to the following formula:
+
+$$p = 1 - \ \sum_{i = 0}^{k - 1}\ \frac{\left( \frac{M}{i} \right)\left( \frac{N - M}{n - i} \right)}{\left( \frac{N}{n} \right)}$$
+
+where ***N*** is the total number of genes in the background (not including the index gene (microRNA) and intermediary gene (TF) themselves), ***M*** is the number of TF targeted genes, ***n*** is the number of genes correlated with the index gene (microRNA) that are not explained by a direct regulatory relationship, and ***k*** is the size of the overlap, being genes found in both *M* and *n*.
+
+For example, from our BRCA data, let us consider miR-107. It positively correlated with 2,936 genes, 1,467 of which are not direct targets of miR-107. miR-107 is also known to target the TF MAX. Out of the 17,638 genes in our final gene expression matrix, MAX is known to target 1,598 genes. Now we find that of the 1,467 genes that positively correlate with miR-107 but are not its direct targets, 187 are also targeted by MAX. To determine whether this overlap may reflect an indirect miRNA-MAX-mRNA regulatory relationship, we test whether this overlap is statistically significantly greater than would be observed by chance alone using ORA. Here, *N* is the full background (17,636 genes, i.e. excluding hsa-miR-107 and *MAX* themselves), *M* is the number of MAX targets (1,598), *n* is the number of miR-correlated genes (1,467), and *k* is the overlap (187 genes).
+
+Importantly, for each miRNA--TF pair, we removed direct miRNA targets from the correlated gene set before ORA to ensure that the significance of gene overlap reflects potential TF-mediated effects rather than direct miRNA regulation. For miRNAs targeting multiple TFs, overlap analyses were performed separately for each TF, as pooling all TFs and their targets can inflate overlap proportions due to their collective target coverage of much of the genome, obscuring true miR--TF interactions. The resulting enrichment *p* values were corrected using the BH method to account for FDR, and only pairs with adjusted *p* value \< 0.05 were considered significant.
+
+We used "clusterProfiler", an R/Bioconductor package ([Wu et al., 2021](#ref-wu2021){.cite}) to perform ORA. The "enricher" function uses TERM2GENE, a user-specified custom annotation list with term ID and corresponding mapped gene. All mRNAs used for correlation analysis formed the background set. For each TF, we created a gene set consisting of its target genes that were also present in the background set (here, ID was "TF target", e.g., "MAX target"). This allowed us to investigate whether miRNA-correlated genes (positively or negatively correlated minus the direct targets of the miRNA) were over-represented among the targets of TFs known to interact with that miRNA.
+
+## RESULTS
+
+Matched gene and miRNA expression datasets were available, after pre-processing as described in Methods, for 17,384 genes and 779 miRNAs across 451 matched cases in SKCM, and 17,638 genes and 575 miRNAs across 1,198 matched cases in BRCA.
+
+Pairwise Spearman correlation analysis identified a substantial number of significantly (adjusted *p* value \<0.05) correlated miRNA-mRNA pairs: in SKCM, 1,991,909 positive correlations and 1,115,724 negative correlations; in BRCA, 1,846,380 positive correlations and 2,503,820 negative correlations.
+
+### Over-representation analysis of miRNA-TF-mRNA interactions
+
+We next employed ORA to assess whether the set of genes correlated with but not directly targeted by a given miRNA, were enriched for gene targets of a TF known to be a direct target of that miRNA. Out of the 779 miRNAs evaluable in SKCM, 163 were found to target at least one TF. Of these 163 miRNAs, significant TF target gene enrichment was identified in the negatively and positively correlated gene sets of 21 and 45 miRNAs, respectively ([Fig. 1A](#figure-1){.fig-link}). The equivalent numbers from analysis of the 575 miRNAs in the BRCA dataset were 54 and 57, respectively, from among the 92 miRNAs found to target at least one TF ([Fig. 1B](#figure-1){.fig-link}).
+
+::: {#figure-1 .ms-figure}
+:::: panel-grid
+::::: {.panel data-label="A"}
+![](<plots_main/SKCM - Distribution of miRNAs Based on Correlation %0Awith Genes and Overlap with TF Targets.png>)
+:::::
+
+::::: {.panel data-label="B"}
+![](<plots_main/BRCA - Distribution of miRNAs Based on Correlation %0Awith Genes and Overlap with TF Targets.png>)
+:::::
+::::
+
+::: figure-caption
+**Figure 1. Number of miRNAs demonstrating transcription factor targeting and target gene overlap in cancer datasets.** Proportions of all miRNAs that do not target TFs (grey) or target TF with significant (green) or no significant (blue) overlap between miRNA-correlated and TF target genes for (**A**) melanoma SKCM samples, and (**B**) invasive breast carcinoma BRCA samples from The Cancer Genome Atlas.
+:::
+:::
+
+### Identifying potential TF-mediated miRNA effects guided by strong correlations
+
+We next sought to identify potentially biologically relevant miRNA-TF relationships within our significant overlap results. First, we selected the most highly correlated gene from the overlapping gene set of each miRNA-TF pair as representing the strongest individual signal of a tripartite regulatory relationship, and denoted this value as the nominal correlation value of the miRNA-TF pair. We then ranked miRNA-TF pairs by this correlation value (descending order of absolute correlation coefficient) and overlap enrichment significance (ascending order of FDR), as represented in [Fig. 2](#figure-2){.fig-link}. In the melanoma cohort, significant overlap (FDR \< 0.05) between miR-correlated genes and TF targets was found for 31 miR-TF among negatively correlated genes 90 miR-TF pairs among positively correlated genes; in the breast cancer data, there were 300 and 388 miR-TF pairs respectively.
+
+::: {#figure-2 .ms-figure}
+:::: panel-grid
+::::: {.panel data-label="A"}
+![](<plots_main/SKCM - Top miR-TF pairs - Negative Correlation.png>)
+:::::
+
+::::: {.panel data-label="B"}
+![](<plots_main/SKCM - Top miR-TF pairs - Positive Correlation.png>)
+:::::
+
+::::: {.panel data-label="C"}
+![](<plots_main/BRCA - Top miR-TF pairs - Negative Correlation.png>)
+:::::
+
+::::: {.panel data-label="D"}
+![](<plots_main/BRCA - Top miR-TF pairs - Positive Correlation.png>)
+:::::
+::::
+
+::: figure-caption
+**Figure 2. Candidate miRNA-TF pairs of interest defined by strength of correlation and target overlap.** Scatter plots show the correlation coefficient of the most highly miRNA-correlated gene versus the significance of gene set overlap, for each individual miRNA-TF pairs identified by over-representation analysis of (A) negatively correlated genes for SKCM samples, (B) positively correlated genes for SKCM samples, (C) negatively correlated genes for BRCA samples, (D) positively correlated genes for BRCA samples. Candidate pairs displaying the strongest gene correlations and most significant target overlaps are annotated.
+:::
+:::
+
+Several individual miRNA or TFs appeared recurrently implicated as members of tripartite regulatory relationships in these datasets. In SKCM, GATA3 appeared in 2 of 5 top pairs in negatively correlated genes. In BRCA, miR-449a was present in all 5 top pairs from positively correlated genes while miR-439 and miR-577 were present in all 5 top pairs from negatively correlated genes; however, the associated TFs varied. Notably, these enriched miRNA--TF--mRNA relationships were observed across a wide range of miRNA and TF expression levels, with no evident dependence on absolute abundance.
+
+### Experimentally validated miRNA-TF interactions
+
+While all miR-TF interactions queried from multiMiR were experimentally validated, we further refined the significant ORA results to include only interactions validated by luciferase assay or western blot since miRNA target interactions (MTI) are considered to have strong support when these techniques are used.
+
+In the SKCM cohort, 3 and 4 miR-TF pairs each showed a stronger evidence of miRNA-TF binding among negatively and positively correlated genes sets respectively; for BRCA, 17 and 18 miR-TF pairs each showed a significant overlap, respectively.
+
+::: {#figure-6 .ms-figure}
+:::: panel-grid
+::::: {.panel data-label="A"}
+![](<plots_main/SKCM  -  Interaction Plot - miRs with negatively correlated genes.png>)
+:::::
+
+::::: {.panel data-label="B"}
+![](<plots_main/SKCM  -  Interaction Plot - miRs with positively correlated genes.png>)
+:::::
+
+::::: {.panel data-label="C"}
+![](<plots_main/BRCA  -  Interaction Plot - miRs with negatively correlated genes.png>)
+:::::
+
+::::: {.panel data-label="D"}
+![](<plots_main/BRCA  -  Interaction Plot - miRs with positively correlated genes.png>)
+:::::
+::::
+
+::: figure-caption
+**Figure 6. Interaction networks of miRNA--TF pairs with experimentally validated interactions.** Each connection represents a miRNA--TF pair confirmed by luciferase or western blot assays, with node positions reflecting z-transformed expression levels of miRNAs and TFs. This visualisation highlights the most confidently supported and biologically relevant miRNA--TF relationships driving potential indirect regulation in (A) negatively correlated genes for SKCM samples, (B) positively correlated genes for SKCM samples, (C) negatively correlated genes for BRCA samples, (D) positively correlated genes for BRCA samples.
+:::
+:::
+
+MYC appears in both cohorts, for both positively and negatively correlated gene sets. MiR-107 also appears in both cohorts in positively correlated gene interactions. In BRCA, TFs MYC and ZEB1 have the highest number of significant interactions with miRs in both positively and negatively correlated cases ([Figure 6](#figure-6){.fig-link}).
+
+## DISCUSSION
+
+This study aimed to develop a method to unravel the indirect miRNA regulation of gene expression mediated by TFs, using only standard miRNA/mRNA expression data as input. By integrating known TFs and accounting for validated miRNA-TF interactions, we found that 15-20% of miRNA targeted at least one TF, with strong evidence that TF regulation of gene expression explains the relationship between hundreds of apparent miRNA-gene correlations at transcriptomic level. We found that ranking miRNA-TF pairs based on strength of gene correlation and over-representation analysis significance may help identify key miRNAs or TFs of strong biological relevance for further characterisation, including GATA3 in melanoma, and miR-429 and miR-449 in breast cancer.
+
+Notably, the regulatory relationships that were identified did not depend on absolute miRNA or TF abundance, implying that even moderately expressed miRNAs can exert significant effects if they target critical network nodes (such as master TFs in a network). This lack of strict dependence on expression level underscores that a miRNA's impact in cancer is defined more by its network connectivity and interactions than by its sheer quantity. However, while miRNAs have distinct mRNA targets, this relationship is not one-to-one. Instead, they participate in extensive, overlapping networks where cooperativity and redundancy can obscure causal links in correlation-based approaches ([Schmitz et al., 2014](#ref-schmitz2014){.cite}). This complexity poses a challenge when inferring functional regulation purely from expression data without direct experimental validation.
+
+We highlight a few literature-supported examples that reinforce the biological relevance of key miRNA-TF interactions to cancer biology. MiR-449a, present in all 5 top miRNA-TF pairs from the negatively-correlated gene set in BRCA, is downregulated in breast cancer and suppresses proliferation, migration, and metastasis by targeting PLAGL2 ([Xu et al., 2018](#ref-xu2018){.cite}).Our data therefore suggest that these 5 TFs targeted by miR-449a (i.e. EGR1, CTCF, RFX1, YY1 and PCGF2) collectively act to promote expression of a set of oncogenic genes in breast cancer cells, many of which are likely contained within the negatively-correlated but not directly targeted gene set of miR-449a.
+
+Among experimentally validated interactions, miR-107--ARNT and miR-137--MITF were significant in SKCM, with miR-107 also appearing in BRCA. miR-107 has been shown to suppress melanoma and breast cancer progression ([Gao et al., 2017](#ref-gao2017){.cite}; [Zhao et al., 2020](#ref-zhao2020g){.cite}), while ARNT downregulation promotes melanoma metastasis ([Huang et al., 2021](#ref-huang2021){.cite}). In BRCA, TFs MYC and ZEB1 have the most number of significant interactions with miRs in both positively and negatively correlated cases; both are well-established drivers of aggressive breast cancer phenotypes, linked to poor prognosis and contributing to tumour initiation ([Katsura et al., 2017](#ref-katsura2017){.cite}; [Xu et al., 2010](#ref-xu2010){.cite}).
+
+While the role of miRNAs in regulating both normal and pathological cell behaviour is well-established, the intricacy of gene regulatory networks in cancer warrants an increasingly systems-level approach to the design and interpretation of genomic data. Here, we developed an approach to the inference of indirect, TF-mediated relationships between miRNA and genes. We identified compelling signals of candidate tripartite relationships warranting experimental validation. Furthermore, our approach may be more broadly useful to refine focus on genes of interest in any biological system by leveraging the orthogonal information derived from miRNA, even when the microRNA is seemingly not directly involved. Future work building focus on indirect regulatory relationships will help unravel the underlying mechanisms, and therapeutic opportunities, in cancer biology.
+
+## REFERENCES {#references}
+
+::: {#ref-abbas2018 .ref-entry}
+Abbas-Aghababazadeh, F., Li, Q., & Fridley, B. L. (2018). Comparison of normalization approaches for gene expression studies completed with high-throughput sequencing. *PLoS One*, *13*(10), e0206312. <https://doi.org/10.1371/journal.pone.0206312>
+:::
+
+::: {#ref-alexiou2020 .ref-entry}
+Alexiou, A., Zisis, D., Kavakiotis, I., Miliotis, M., Koussounadis, A., Karagkouni, D., & Hatzigeorgiou, A. G. (2020). DIANA-mAP: Analyzing miRNA from Raw NGS Data to Quantification. *Genes (Basel)*, *12*(1). <https://doi.org/10.3390/genes12010046>
+:::
+
+::: {#ref-andrews2016 .ref-entry}
+Andrews, M. C., Cursons, J., Hurley, D. G., Anaka, M., Cebon, J. S., Behren, A., & Crampin, E. J. (2016). Systems analysis identifies miR-29b regulation of invasiveness in melanoma. *Mol Cancer*, *15*(1), 72. <https://doi.org/10.1186/s12943-016-0554-y>
+:::
+
+::: {#ref-arora2013 .ref-entry}
+Arora, S., Rana, R., Chhabra, A., Jaiswal, A., & Rani, V. (2013). miRNA-transcription factor interactions: a combinatorial regulation of gene expression. *Mol Genet Genomics*, *288*(3-4), 77-87. <https://doi.org/10.1007/s00438-013-0734-z>
+:::
+
+::: {#ref-bairoch2018 .ref-entry}
+Bairoch, A. (2018). The Cellosaurus, a Cell-Line Knowledge Resource. *J Biomol Tech*, *29*(2), 25-38. <https://doi.org/10.7171/jbt.18-2902-002>
+:::
+
+::: {#ref-bartel2004 .ref-entry}
+Bartel, D. P. (2004). MicroRNAs: genomics, biogenesis, mechanism, and function. *Cell*, *116*(2), 281-297. <https://doi.org/10.1016/s0092-8674(04)00045-5>
+:::
+
+::: {#ref-boyle2004 .ref-entry}
+Boyle, E. I., Weng, S., Gollub, J., Jin, H., Botstein, D., Cherry, J. M., & Sherlock, G. (2004). GO::TermFinder\--open source software for accessing Gene Ontology information and finding significantly enriched Gene Ontology terms associated with a list of genes. *Bioinformatics*, *20*(18), 3710-3715. <https://doi.org/10.1093/bioinformatics/bth456>
+:::
+
+::: {#ref-catalanotto2016 .ref-entry}
+Catalanotto, C., Cogoni, C., & Zardo, G. (2016). MicroRNA in Control of Gene Expression: An Overview of Nuclear Functions. *Int J Mol Sci*, *17*(10). <https://doi.org/10.3390/ijms17101712>
+:::
+
+::: {#ref-chen2007 .ref-entry}
+Chen, K., & Rajewsky, N. (2007). The evolution of gene regulation by transcription factors and microRNAs. *Nat Rev Genet*, *8*(2), 93-103. <https://doi.org/10.1038/nrg1990>
+:::
+
+::: {#ref-chi2009 .ref-entry}
+Chi, S. W., Zang, J. B., Mele, A., & Darnell, R. B. (2009). Argonaute HITS-CLIP decodes microRNA-mRNA interaction maps. *Nature*, *460*(7254), 479-486. <https://doi.org/10.1038/nature08170>
+:::
+
+::: {#ref-colaprico2016 .ref-entry}
+Colaprico, A., Silva, T. C., Olsen, C., Garofano, L., Cava, C., Garolini, D., Sabedot, T. S., Malta, T. M., Pagnotta, S. M., Castiglioni, I., Ceccarelli, M., Bontempi, G., & Noushmehr, H. (2016). TCGAbiolinks: an R/Bioconductor package for integrative analysis of TCGA data. *Nucleic Acids Res*, *44*(8), e71. <https://doi.org/10.1093/nar/gkv1507>
+:::
+
+::: {#ref-cui2007 .ref-entry}
+Cui, Q., Yu, Z., Pan, Y., Purisima, E. O., & Wang, E. (2007). MicroRNAs preferentially target the genes with high transcriptional regulation complexity. *Biochem Biophys Res Commun*, *352*(3), 733-738. <https://doi.org/10.1016/j.bbrc.2006.11.080>
+:::
+
+::: {#ref-fattore2017 .ref-entry}
+Fattore, L., Costantini, S., Malpicci, D., Ruggiero, C. F., Ascierto, P. A., Croce, C. M., Mancini, R., & Ciliberto, G. (2017). MicroRNAs in melanoma development and resistance to target therapy. *Oncotarget*, *8*(13), 22262-22278. <https://doi.org/10.18632/oncotarget.14763>
+:::
+
+::: {#ref-flynt2008 .ref-entry}
+Flynt, A. S., & Lai, E. C. (2008). Biological principles of microRNA-mediated regulation: shared themes amid diversity. *Nat Rev Genet*, *9*(11), 831-842. <https://doi.org/10.1038/nrg2455>
+:::
+
+::: {#ref-friedman2009 .ref-entry}
+Friedman, R. C., Farh, K. K., Burge, C. B., & Bartel, D. P. (2009). Most mammalian mRNAs are conserved targets of microRNAs. *Genome Res*, *19*(1), 92-105. <https://doi.org/10.1101/gr.082701.108>
+:::
+
+::: {#ref-gao2017 .ref-entry}
+Gao, B., Hao, S., Tian, W., Jiang, Y., Zhang, S., Guo, L., Zhao, J., Zhang, G., Yan, J., & Luo, D. (2017). MicroRNA-107 is downregulated and having tumor suppressive effect in breast cancer by negatively regulating brain-derived neurotrophic factor. *J Gene Med*, *19*(12). <https://doi.org/10.1002/jgm.2932>
+:::
+
+::: {#ref-guzzi2015 .ref-entry}
+Guzzi, P. H., Di Martino, M. T., Tagliaferri, P., Tassone, P., & Cannataro, M. (2015). Analysis of miRNA, mRNA, and TF interactions through network-based methods. *EURASIP J Bioinform Syst Biol*, *2015*, 4. <https://doi.org/10.1186/s13637-015-0023-8>
+:::
+
+::: {#ref-harrell2023 .ref-entry}
+Harrell Jr, F. (2023). *Hmisc: Harrell Miscellaneous*. R package version 5.1-2. <https://hbiostat.org/R/Hmisc/>
+:::
+
+::: {#ref-hofacker2007 .ref-entry}
+Hofacker, I. L. (2007). How microRNAs choose their targets. *Nat Genet*, *39*(10), 1191-1192. <https://doi.org/10.1038/ng1007-1191>
+:::
+
+::: {#ref-hsu2011 .ref-entry}
+Hsu, S. D., Lin, F. M., Wu, W. Y., Liang, C., Huang, W. C., Chan, W. L., Tsai, W. T., Chen, G. Z., Lee, C. J., Chiu, C. M., Chien, C. H., Wu, M. C., Huang, C. Y., Tsou, A. P., & Huang, H. D. (2011). miRTarBase: a database curates experimentally validated microRNA-target interactions. *Nucleic Acids Res*, *39*(Database issue), D163-169. <https://doi.org/10.1093/nar/gkq1107>
+:::
+
+::: {#ref-huang2021 .ref-entry}
+Huang, C. R., Chang, T. W., Lee, C. T., Shen, C. J., Chang, W. C., & Chen, B. K. (2021). ARNT deficiency represses pyruvate dehydrogenase kinase 1 to trigger ROS production and melanoma metastasis. *Oncogenesis*, *10*(1), 11. <https://doi.org/10.1038/s41389-020-00299-3>
+:::
+
+::: {#ref-jia2022 .ref-entry}
+Jia, Y., Liu, J., GQ., W., & ZF., S. (2022). miR-484: A Potential Biomarker in Health and Disease. <https://doi.org/10.3389/fonc.2022.830420>
+:::
+
+::: {#ref-john2004 .ref-entry}
+John, B., Enright, A. J., Aravin, A., Tuschl, T., Sander, C., & Marks, D. S. (2004). Human MicroRNA targets. *PLoS Biol*, *2*(11), e363. <https://doi.org/10.1371/journal.pbio.0020363>
+:::
+
+::: {#ref-joung2007 .ref-entry}
+Joung, J. G., Hwang, K. B., Nam, J. W., Kim, S. J., & Zhang, B. T. (2007). Discovery of microRNA-mRNA modules via population-based probabilistic learning. *Bioinformatics*, *23*(9), 1141-1147. <https://doi.org/10.1093/bioinformatics/btm045>
+:::
+
+::: {#ref-karp2021 .ref-entry}
+Karp, P. D., Midford, P. E., Caspi, R., & Khodursky, A. (2021). Pathway size matters: the influence of pathway granularity on over-representation (enrichment analysis) statistics. *BMC Genomics*, *22*(1), 191. <https://doi.org/10.1186/s12864-021-07502-8>
+:::
+
+::: {#ref-katsura2017 .ref-entry}
+Katsura, A., Tamura, Y., Hokari, S., Harada, M., Morikawa, M., Sakurai, T., Takahashi, K., Mizutani, A., Nishida, J., Yokoyama, Y., Morishita, Y., Murakami, T., Ehata, S., Miyazono, K., & Koinuma, D. (2017). ZEB1-regulated inflammatory phenotype in breast cancer cells. Mol Oncol, 11(9), 1241-1262. <https://doi.org/10.1002/1878-0261.12098>
+:::
+
+::: {#ref-kawakami2017 .ref-entry}
+Kawakami, A., & Fisher, D. E. (2017). The master role of microphthalmia-associated transcription factor in melanocyte and melanoma biology. *Lab Invest*, *97*(6), 649-656. <https://doi.org/10.1038/labinvest.2017.9>
+:::
+
+::: {#ref-kuhn2008 .ref-entry}
+Kuhn, D. E., Martin, M. M., Feldman, D. S., Terry, A. V., Jr., Nuovo, G. J., & Elton, T. S. (2008). Experimental validation of miRNA targets. *Methods*, *44*(1), 47-54. <https://doi.org/10.1016/j.ymeth.2007.09.005>
+:::
+
+::: {#ref-lambert2018 .ref-entry}
+Lambert, S. A., Jolma, A., Campitelli, L. F., Das, P. K., Yin, Y., Albu, M., Chen, X., Taipale, J., Hughes, T. R., & Weirauch, M. T. (2018). The Human Transcription Factors. *Cell*, *172*(4), 650-665. <https://doi.org/10.1016/j.cell.2018.01.029>
+:::
+
+::: {#ref-law2014 .ref-entry}
+Law, C. W., Chen, Y., Shi, W., & Smyth, G. K. (2014). voom: Precision weights unlock linear model analysis tools for RNA-seq read counts. *Genome Biol*, *15*(2), R29. <https://doi.org/10.1186/gb-2014-15-2-r29>
+:::
+
+::: {#ref-le2013 .ref-entry}
+Le, T. D., Liu, L., Tsykin, A., Goodall, G. J., Liu, B., Sun, B. Y., & Li, J. (2013). Inferring microRNA-mRNA causal regulatory relationships from expression data. *Bioinformatics*, *29*(6), 765-771. <https://doi.org/10.1093/bioinformatics/btt048>
+:::
+
+::: {#ref-lewis2003 .ref-entry}
+Lewis, B. P., Shih, I. H., Jones-Rhoades, M. W., Bartel, D. P., & Burge, C. B. (2003). Prediction of mammalian microRNA targets. *Cell*, *115*(7), 787-798. <https://doi.org/10.1016/s0092-8674(03)01018-3>
+:::
+
+::: {#ref-li2011 .ref-entry}
+Li, B., & Dewey, C. N. (2011). RSEM: accurate transcript quantification from RNA-Seq data with or without a reference genome. *BMC Bioinformatics*, *12*, 323. <https://doi.org/10.1186/1471-2105-12-323>
+:::
+
+::: {#ref-li2016 .ref-entry}
+Li, N. (2016). Low Expression of Mir-137 Predicts Poor Prognosis in Cutaneous Melanoma Patients. *Med Sci Monit*, *22*, 140-144. <https://doi.org/10.12659/msm.895207>
+:::
+
+::: {#ref-liu2014 .ref-entry}
+Liu, B., Li, J., & Cairns, M. J. (2014). Identifying miRNAs, targets and functions. *Brief Bioinform*, *15*(1), 1-19. <https://doi.org/10.1093/bib/bbs075>
+:::
+
+::: {#ref-liu2019 .ref-entry}
+Liu, W., & Wang, X. (2019). Prediction of functional microRNA targets by integrative modeling of microRNA binding and target expression data. *Genome Biol*, *20*(1), 18. <https://doi.org/10.1186/s13059-019-1629-z>
+:::
+
+::: {#ref-lu2005 .ref-entry}
+Lu, J., Getz, G., Miska, E. A., Alvarez-Saavedra, E., Lamb, J., Peck, D., Sweet-Cordero, A., Ebert, B. L., Mak, R. H., Ferrando, A. A., Downing, J. R., Jacks, T., Horvitz, H. R., & Golub, T. R. (2005). MicroRNA expression profiles classify human cancers. *Nature*, *435*(7043), 834-838. <https://doi.org/10.1038/nature03702>
+:::
+
+::: {#ref-meyer2010 .ref-entry}
+Meyer, S. U., Pfaffl, M. W., & Ulbrich, S. E. (2010). Normalization strategies for microRNA profiling experiments: a \'normal\' way to a hidden layer of complexity? *Biotechnol Lett*, *32*(12), 1777-1788. <https://doi.org/10.1007/s10529-010-0380-z>
+:::
+
+::: {#ref-michael2003 .ref-entry}
+Michael, M. Z., SM, O. C., van Holst Pellekaan, N. G., Young, G. P., & James, R. J. (2003). Reduced accumulation of specific microRNAs in colorectal neoplasia. *Mol Cancer Res*, *1*(12), 882-891. <https://www.ncbi.nlm.nih.gov/pubmed/14573789>
+:::
+
+::: {#ref-park2009 .ref-entry}
+Park, P. J. (2009). ChIP-seq: advantages and challenges of a maturing technology. *Nat Rev Genet*, *10*(10), 669-680. <https://doi.org/10.1038/nrg2641>
+:::
+
+::: {#ref-peres2017 .ref-entry}
+Peres, J., Kwesi-Maliepaard, E. M., Rambow, F., Larue, L., & Prince, S. (2017). The tumour suppressor, miR-137, inhibits malignant melanoma migration by targetting the TBX3 transcription factor. *Cancer Lett*, *405*, 111-119. <https://doi.org/10.1016/j.canlet.2017.07.018>
+:::
+
+::: {#ref-pritchard2012 .ref-entry}
+Pritchard, C. C., Cheng, H. H., & Tewari, M. (2012). MicroRNA profiling: approaches and considerations. *Nat Rev Genet*, *13*(5), 358-369. <https://doi.org/10.1038/nrg3198>
+:::
+
+::: {#ref-ru2014 .ref-entry}
+Ru, Y., Kechris, K. J., Tabakoff, B., Hoffman, P., Radcliffe, R. A., Bowler, R., Mahaffey, S., Rossi, S., Calin, G. A., Bemis, L., & Theodorescu, D. (2014). The multiMiR R package and database: integration of microRNA-target interactions along with their disease and drug associations. *Nucleic Acids Res*, *42*(17), e133. <https://doi.org/10.1093/nar/gku631>
+:::
+
+::: {#ref-sa2018 .ref-entry}
+Sa, A. C. C., Sadee, W., & Johnson, J. A. (2018). Whole Transcriptome Profiling: An RNA-Seq Primer and Implications for Pharmacogenomics Research. *Clin Transl Sci*, *11*(2), 153-161. <https://doi.org/10.1111/cts.12511>
+:::
+
+::: {#ref-schmittgen2008 .ref-entry}
+Schmittgen, T. D., Lee, E. J., Jiang, J., Sarkar, A., Yang, L., Elton, T. S., & Chen, C. (2008). Real-time PCR quantification of precursor and mature microRNA. *Methods*, *44*(1), 31-38. <https://doi.org/10.1016/j.ymeth.2007.09.006>
+:::
+
+::: {#ref-schmitz2014 .ref-entry}
+Schmitz, U., Lai, X., Winter, F., Wolkenhauer, O., Vera, J., & Gupta, S. K. (2014). Cooperative gene regulation by microRNA pairs and their identification using a computational workflow. *Nucleic Acids Res*, *42*(12), 7539-7552. <https://doi.org/10.1093/nar/gku465>
+:::
+
+::: {#ref-sevignani2006 .ref-entry}
+Sevignani, C., Calin, G. A., Siracusa, L. D., & Croce, C. M. (2006). Mammalian microRNAs: a small world for fine-tuning gene expression. *Mamm Genome*, *17*(3), 189-202. <https://doi.org/10.1007/s00335-005-0066-3>
+:::
+
+::: {#ref-siska2017 .ref-entry}
+Siska, C., & Kechris, K. (2017). Differential correlation for sequencing data. *BMC Res Notes*, *10*(1), 54. <https://doi.org/10.1186/s13104-016-2331-9>
+:::
+
+::: {#ref-suter2020 .ref-entry}
+Suter, D. M. (2020). Transcription Factors and DNA Play Hide and Seek. *Trends Cell Biol*, *30*(6), 491-500. <https://doi.org/10.1016/j.tcb.2020.03.003>
+:::
+
+::: {#ref-thomson2011 .ref-entry}
+Thomson, D. W., Bracken, C. P., & Goodall, G. J. (2011). Experimental strategies for microRNA target identification. *Nucleic Acids Res*, *39*(16), 6845-6853. <https://doi.org/10.1093/nar/gkr330>
+:::
+
+::: {#ref-varrone2020 .ref-entry}
+Varrone, F., & Caputo, E. (2020). The miRNAs Role in Melanoma and in Its Resistance to Therapy. *Int J Mol Sci*, *21*(3). <https://doi.org/10.3390/ijms21030878>
+:::
+
+::: {#ref-vishnoi2020 .ref-entry}
+Vishnoi, K., Viswakarma, N., Rana, A., & Rana, B. (2020). Transcription Factors in Cancer Development and Therapy. *Cancers (Basel)*, *12*(8). <https://doi.org/10.3390/cancers12082296>
+:::
+
+::: {#ref-wang2015 .ref-entry}
+Wang, G., Wang, F., Huang, Q., Li, Y., Liu, Y., & Wang, Y. (2015). Understanding Transcription Factor Regulation by Integrating Gene Expression and DNase I Hypersensitive Sites. *Biomed Res Int*, *2015*, 757530. <https://doi.org/10.1155/2015/757530>
+:::
+
+::: {#ref-wong2022 .ref-entry}
+Wong, G. L., Manore, S. G., Doheny, D. L., & Lo, H. W. (2022). STAT family of transcription factors in breast cancer: Pathogenesis and therapeutic opportunities and challenges. *Semin Cancer Biol*, *86*(Pt 3), 84-106. <https://doi.org/10.1016/j.semcancer.2022.08.003>
+:::
+
+::: {#ref-wu2021 .ref-entry}
+Wu, T., Hu, E., Xu, S., Chen, M., Guo, P., Dai, Z., Feng, T., Zhou, L., Tang, W., Zhan, L., Fu, X., Liu, S., Bo, X., & Yu, G. (2021). clusterProfiler 4.0: A universal enrichment tool for interpreting omics data. *Innovation (Camb)*, *2*(3), 100141. <https://doi.org/10.1016/j.xinn.2021.100141>
+:::
+
+::: {#ref-xiao2009 .ref-entry}
+Xiao, F., Zuo, Z., Cai, G., Kang, S., Gao, X., & Li, T. (2009). miRecords: an integrated resource for microRNA-target interactions. *Nucleic Acids Res*, *37*(Database issue), D105-110. <https://doi.org/10.1093/nar/gkn851>
+:::
+
+::: {#ref-xu2018 .ref-entry}
+Xu, B., Zhang, X., Wang, S., & Shi, B. (2018). MiR-449a suppresses cell migration and invasion by targeting PLAGL2 in breast cancer. *Pathol Res Pract*, *214*(5), 790-795. <https://doi.org/10.1016/j.prp.2017.12.012>
+:::
+
+::: {#ref-xu2010 .ref-entry}
+Xu, J., Chen, Y., & Olopade, O. I. (2010). MYC and Breast Cancer. *Genes Cancer*, *1*(6), 629-640. <https://doi.org/10.1177/1947601910378691>
+:::
+
+::: {#ref-zhao2020g .ref-entry}
+Zhao, G., Wei, Z., & Guo, Y. (2020). MicroRNA-107 is a novel tumor suppressor targeting POU3F2 in melanoma. *Biol Res*, *53*(1), 11. <https://doi.org/10.1186/s40659-020-00278-3>
+:::
+
+::: {#ref-zhao2016 .ref-entry}
+Zhao, Q., Liu, H., Yao, C., Shuai, J., & Sun, X. (2016). Effect of Dynamic Interaction between microRNA and Transcription Factor on Gene Expression. *Biomed Res Int*, *2016*, 2676282. <https://doi.org/10.1155/2016/2676282>
+:::
+
+::: {#ref-zhao2020s .ref-entry}
+Zhao, S., Ye, Z., & Stanton, R. (2020). Misuse of RPKM or TPM normalization when comparing across samples and sequencing protocols. *RNA*, *26*(8), 903-909. <https://doi.org/10.1261/rna.074922.120>
+:::
+
+::: {#ref-zou2022 .ref-entry}
+Zou, Z., Ohta, T., Miura, F., & Oki, S. (2022). ChIP-Atlas 2021 update: a data-mining suite for exploring epigenomic landscapes by fully integrating ChIP-seq, ATAC-seq and Bisulfite-seq data. *Nucleic Acids Res*, *50*(W1), W175-W182. <https://doi.org/10.1093/nar/gkac199>
+:::
