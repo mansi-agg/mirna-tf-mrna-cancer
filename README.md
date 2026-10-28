@@ -11,7 +11,9 @@ This project tests that idea using matched mRNA and miRNA sequencing data from T
 3. finds each TF's target genes from cancer cell-line ChIP-seq ([ChIP-Atlas](https://chip-atlas.org));
 4. removes the miRNA's own direct targets and uses over-representation analysis ([clusterProfiler](https://doi.org/10.1016/j.xinn.2021.100141)) to test whether the remaining correlated genes are enriched for that TF's targets.
 
-Significant miRNA–TF pairs point to candidate miRNA → TF → mRNA regulatory relationships.
+Significant miRNA–TF pairs point to candidate miRNA → TF → mRNA regulatory relationships. 
+
+The full manuscript can be read [here](https://mansi-agg.github.io/mirna-tf-mrna-cancer/).
 
 ## History
 
