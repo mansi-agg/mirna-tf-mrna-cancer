@@ -28,14 +28,6 @@ format:
         </style>
 ---
 
-<!--
-  Converted from manuscript/MicroRNA-TF_2026-02-08_MA.docx.
-  Text, figure numbering and captions are unchanged.
-  In-text citations link to their entry in the reference list (#ref-...),
-  and figure mentions link to the figure (#figure-...).
-  Figures are linked from plots/.
--->
-
 **Title: Transcription factors mediate microRNA-gene relationships in cancer**
 
 **Authors:** Mansi Aggarwal^1^, Dr. Peinan Zhao^2^, Dr. Miles C. Andrews^1^

@@ -1,6 +1,6 @@
 # mirna-tf-mrna-cancer
 
-**Transcription factors mediate microRNA-gene relationships in cancer**
+[**Transcription factors mediate microRNA-gene relationships in cancer**]((https://mansi-agg.github.io/mirna-tf-mrna-cancer/))
 
 MicroRNAs (miRNAs) regulate gene expression by binding to messenger RNAs (mRNAs), and the usual way to find miRNA targets is to look for miRNA–mRNA expression correlations. But miRNAs also target transcription factors (TFs), so many of those correlations may be *indirect*: the miRNA regulates a TF, and the TF regulates the gene.
 
