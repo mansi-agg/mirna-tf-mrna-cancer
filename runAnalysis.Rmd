@@ -40,30 +40,30 @@ library(ggrepel)
 
 ### 2. Setting Variables
 ```{r}
-# study <- "TCGA-BRCA"
-study <- "TCGA-SKCM"
+study <- "TCGA-BRCA"
+# study <- "TCGA-SKCM"
 
 # File paths
 input_data_common_dir <- file.path(here(), "data_files")
 input_data_study_dir <- file.path(here(), "data_files", study)
 results_save_dir <- file.path(here(), "data_files", study)
 # plots_save_dir <- file.path(here(), "data_files", study, "plots")
-plots_save_dir <- file.path(here(), "plots_poster")
+plots_save_dir <- file.path(here(), "plots_main")
   
-# plot_title_prefix <- "BRCA"
-plot_title_prefix <- "SKCM"
+plot_title_prefix <- "BRCA"
+# plot_title_prefix <- "SKCM"
 
-# rna_data_rds <- "BRCA-rna_data.RDS"
-# mirna_data_rds <- "BRCA-mirna_data.RDS"
+rna_data_rds <- "BRCA-rna_data.RDS"
+mirna_data_rds <- "BRCA-mirna_data.RDS"
 
-rna_data_rds <- "SKCM_rna_data.RDS"
-mirna_data_rds <- "SKCM_mirna_data.RDS"
+# rna_data_rds <- "SKCM_rna_data.RDS"
+# mirna_data_rds <- "SKCM_mirna_data.RDS"
 
-corr_data <- "TCGA_SKCM_mRNA_miRNA_sig_cor.csv"
-# corr_data <- "TCGA_BRCA_mRNA_miRNA_sig_cor.csv"
+# corr_data <- "TCGA_SKCM_mRNA_miRNA_sig_cor.csv"
+corr_data <- "TCGA_BRCA_mRNA_miRNA_sig_cor.csv"
 
-# cell_lines_data <- "Breast_Cancer_Cell_Lines.csv"
-cell_lines_data <- "Melanoma_cell_lines_hg38_FULL.csv"
+cell_lines_data <- "Breast_Cancer_Cell_Lines.csv"
+# cell_lines_data <- "Melanoma_cell_lines_hg38_FULL.csv"
 
 # Data filters
 expression_threshold <- 60
@@ -666,8 +666,7 @@ p <- ggplot(TF.target.gene.count, aes(x=log2(replicate.count), y=log2(target.cou
 
 p
 
-ggsave(plot = p, filename = file.path(plots_save_dir, paste0(title, ".png")), width = 8, height =
-           5)
+ggsave(plot = p, filename = file.path(plots_save_dir, paste0(title, ".png")), width = 8, height = 5,   bg = "white")
 
 spearman.cor <- cor.test(TF.target.gene.count$replicate.count, TF.target.gene.count$target.count, method = "spearman")
 # 
@@ -928,7 +927,7 @@ plot_top_mir_tf_pairs <- function(df, title, y_limit = 10.5, top_n = 5, type = "
     theme_minimal()
   
   ggsave(plot = p, filename = file.path(plots_save_dir, paste0(title, ".png")), width = 8, height =
-           5)
+           5, bg = "white")
   
   return(p)
 }
@@ -1017,7 +1016,7 @@ p <- ggplot(plot_data, aes(x=correlation_type, y=value, fill=condition)) +
        # title = title
        )
 
-ggsave(plot = p, filename = file.path(plots_save_dir, paste0(title, ".png")), width = 8, height = 5)
+ggsave(plot = p, filename = file.path(plots_save_dir, paste0(title, ".png")), width = 8, height = 5, bg = "white")
 
 p
 ```
@@ -1159,7 +1158,7 @@ plot_interactions <- function(interactions_plot, overlap_result, title, sig_colo
   theme_minimal() +
   guides(alpha = "none")
   
-  ggsave(plot = p, filename = file.path(plots_save_dir, paste0(title, ".png")), width = 8, height = 5)
+  ggsave(plot = p, filename = file.path(plots_save_dir, paste0(title, ".png")), width = 8, height = 5, bg = "white")
   
   return(p)
 }
