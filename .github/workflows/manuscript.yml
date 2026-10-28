@@ -2,13 +2,15 @@
 # https://mansi-agg.github.io/mirna-tf-mrna-cancer/
 name: Publish manuscript
 
+# Manual only for now (Pages needs the repo to be public). To publish on every
+# push again, uncomment the `push` trigger below.
 on:
-  push:
-    branches: [main]
-    paths:
-      - manuscript.qmd
-      - plots/**
-      - .github/workflows/manuscript.yml
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - manuscript.qmd
+  #     - plots/**
+  #     - .github/workflows/manuscript.yml
   workflow_dispatch:
 
 permissions:
