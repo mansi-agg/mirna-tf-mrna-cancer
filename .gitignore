@@ -5,6 +5,8 @@
 .DS_Store
 
 manuscript/
+Stepwise_Numeric_Metrics_Overview.docx
+read_cell_lines.py
 
 data_files/TCGA-BRCA/*.RDS
 data_files/TCGA-BRCA/rNA_filtered_data.csv
