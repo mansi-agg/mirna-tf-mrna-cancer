@@ -16,7 +16,7 @@ if (CANCER == "BRCA") {
 
 STUDY     <- paste0("TCGA-", CANCER)
 DATA_DIR  <- here("data_files", STUDY)   # inputs and saved outputs
-PLOTS_DIR <- here("plots_main", CANCER)
+PLOTS_DIR <- here("plots", CANCER)
 
 # ---- Files in DATA_DIR ----
 

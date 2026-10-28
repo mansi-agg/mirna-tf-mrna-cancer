@@ -33,7 +33,7 @@ format:
   Text, figure numbering and captions are unchanged.
   In-text citations link to their entry in the reference list (#ref-...),
   and figure mentions link to the figure (#figure-...).
-  Figures are linked from plots_main/.
+  Figures are linked from plots/.
 -->
 
 **Title: Transcription factors mediate microRNA-gene relationships in cancer**
@@ -71,7 +71,7 @@ To address this, we examined TFs as potential intermediaries of observed miRNA-m
 
 We used data from the SKCM (Skin Cutaneous Melanoma) and BRCA (Breast Invasive Carcinoma) cohorts of The Cancer Genome Atlas (<https://portal.gdc.cancer.gov/projects/TCGA-SKCM> and <https://portal.gdc.cancer.gov/projects/TCGA-BRCA>). Both datasets include miRNA expression profiling by small-RNAseq (available for 452 cases in SKCM, 1207 cases in BRCA) and gene expression profiling by mRNA-seq (available for 473 cases in SKCM, 1231 cases in BRCA). Processed count data summarised at the gene and miRNA level, respectively, were downloaded using the TCGAbiolinks ([Colaprico et al., 2016](#ref-colaprico2016){.cite}) R/Bioconductor package (v2.29.6).
 
-Expression data were cleaned and processed before further analysis as described below and in Supplementary Fig. 1. Gene expression refers to mRNA sequencing-derived abundance quantified as TPM, and microRNA expression refers to mature strand microRNA abundance derived from small RNA sequencing and quantified as RPM.
+Expression data were cleaned and processed before further analysis as described below and in [Supplementary Fig. 1](#supplementary-figure-1){.fig-link}. Gene expression refers to mRNA sequencing-derived abundance quantified as TPM, and microRNA expression refers to mature strand microRNA abundance derived from small RNA sequencing and quantified as RPM.
 
 1.  Protein-coding filter: Gene expression data were filtered to retain only protein-coding transcripts
 
@@ -99,7 +99,7 @@ A database of known human TFs identified through functional characterisation of 
 
 To determine the genes targeted by TFs, we used ChIP-Atlas, a comprehensive web service of consolidated ChIP-seq datasets aligned to a uniform human genome (hg38) prior to peak calling ([Zou et al., 2022](#ref-zou2022){.cite}). Significant peaks indicative of TF-binding sites were identified, and genes with peaks overlapping with transcription start site regions within a specified distance were considered as potential TF targets.
 
-We also curated melanoma and breast cancer cell lines from both ChIP-Atlas metadata and the Cellosaurus ([Bairoch, 2018](#ref-bairoch2018){.cite}) database in order to provide cancer cell type-specific support during identification of TFs of interest. For each TF in the list from [Lambert et al. (2018)](#ref-lambert2018){.cite}, we identified all genes that demonstrated significant TF binding within 5000 base pairs of the gene's TSS. To reduce false positives from individual ChIP-seq experiments, we applied a consensus threshold such that a gene was retained as a TF target only if it showed TF binding in at least 50% of the cancer-specific cell lines with available ChIP-seq data. We did not apply any minimum threshold on the number of ChIP-seq replicates or distinct cell lines represented in the datasets per TF: A Spearman correlation analysis revealed no significant association between the number of biological replicates and the number of target genes identified per TF (Supplementary Fig. 2), indicating that variation in replicate count (e.g. publication biases) did not systematically inflate or deflate TF target gene counts.
+We also curated melanoma and breast cancer cell lines from both ChIP-Atlas metadata and the Cellosaurus ([Bairoch, 2018](#ref-bairoch2018){.cite}) database in order to provide cancer cell type-specific support during identification of TFs of interest. For each TF in the list from [Lambert et al. (2018)](#ref-lambert2018){.cite}, we identified all genes that demonstrated significant TF binding within 5000 base pairs of the gene's TSS. To reduce false positives from individual ChIP-seq experiments, we applied a consensus threshold such that a gene was retained as a TF target only if it showed TF binding in at least 50% of the cancer-specific cell lines with available ChIP-seq data. We did not apply any minimum threshold on the number of ChIP-seq replicates or distinct cell lines represented in the datasets per TF: A Spearman correlation analysis revealed no significant association between the number of biological replicates and the number of target genes identified per TF ([Supplementary Fig. 2](#supplementary-figure-2){.fig-link}), indicating that variation in replicate count (e.g. publication biases) did not systematically inflate or deflate TF target gene counts.
 
 ### Over-representation analysis
 
@@ -128,11 +128,11 @@ We next employed ORA to assess whether the set of genes correlated with but not 
 ::: {#figure-1 .ms-figure}
 :::: panel-grid
 ::::: {.panel data-label="A"}
-![](<plots_main/SKCM - Distribution of miRNAs Based on Correlation %0Awith Genes and Overlap with TF Targets.png>)
+![](<plots/SKCM/SKCM - Distribution of miRNAs Based on Correlation with Genes and Overlap with TF Targets.png>)
 :::::
 
 ::::: {.panel data-label="B"}
-![](<plots_main/BRCA - Distribution of miRNAs Based on Correlation %0Awith Genes and Overlap with TF Targets.png>)
+![](<plots/BRCA/BRCA - Distribution of miRNAs Based on Correlation with Genes and Overlap with TF Targets.png>)
 :::::
 ::::
 
@@ -148,19 +148,19 @@ We next sought to identify potentially biologically relevant miRNA-TF relationsh
 ::: {#figure-2 .ms-figure}
 :::: panel-grid
 ::::: {.panel data-label="A"}
-![](<plots_main/SKCM - Top miR-TF pairs - Negative Correlation.png>)
+![](<plots/SKCM/SKCM - Top miR-TF pairs - Negative Correlation.png>)
 :::::
 
 ::::: {.panel data-label="B"}
-![](<plots_main/SKCM - Top miR-TF pairs - Positive Correlation.png>)
+![](<plots/SKCM/SKCM - Top miR-TF pairs - Positive Correlation.png>)
 :::::
 
 ::::: {.panel data-label="C"}
-![](<plots_main/BRCA - Top miR-TF pairs - Negative Correlation.png>)
+![](<plots/BRCA/BRCA - Top miR-TF pairs - Negative Correlation.png>)
 :::::
 
 ::::: {.panel data-label="D"}
-![](<plots_main/BRCA - Top miR-TF pairs - Positive Correlation.png>)
+![](<plots/BRCA/BRCA - Top miR-TF pairs - Positive Correlation.png>)
 :::::
 ::::
 
@@ -180,19 +180,19 @@ In the SKCM cohort, 3 and 4 miR-TF pairs each showed a stronger evidence of miRN
 ::: {#figure-6 .ms-figure}
 :::: panel-grid
 ::::: {.panel data-label="A"}
-![](<plots_main/SKCM  -  Interaction Plot - miRs with negatively correlated genes.png>)
+![](<plots/SKCM/SKCM - Interaction Plot - miRs with negatively correlated genes.png>)
 :::::
 
 ::::: {.panel data-label="B"}
-![](<plots_main/SKCM  -  Interaction Plot - miRs with positively correlated genes.png>)
+![](<plots/SKCM/SKCM - Interaction Plot - miRs with positively correlated genes.png>)
 :::::
 
 ::::: {.panel data-label="C"}
-![](<plots_main/BRCA  -  Interaction Plot - miRs with negatively correlated genes.png>)
+![](<plots/BRCA/BRCA - Interaction Plot - miRs with negatively correlated genes.png>)
 :::::
 
 ::::: {.panel data-label="D"}
-![](<plots_main/BRCA  -  Interaction Plot - miRs with positively correlated genes.png>)
+![](<plots/BRCA/BRCA - Interaction Plot - miRs with positively correlated genes.png>)
 :::::
 ::::
 
@@ -463,4 +463,32 @@ Zhao, S., Ye, Z., & Stanton, R. (2020). Misuse of RPKM or TPM normalization when
 
 ::: {#ref-zou2022 .ref-entry}
 Zou, Z., Ohta, T., Miura, F., & Oki, S. (2022). ChIP-Atlas 2021 update: a data-mining suite for exploring epigenomic landscapes by fully integrating ChIP-seq, ATAC-seq and Bisulfite-seq data. *Nucleic Acids Res*, *50*(W1), W175-W182. <https://doi.org/10.1093/nar/gkac199>
+:::
+
+{{< pagebreak >}}
+
+## SUPPLEMENTARY FIGURES {#supplementary-figures}
+
+::: {#supplementary-figure-1 .ms-figure}
+![](<plots/Supplementary Figure 1.jpg>)
+
+::: figure-caption
+**Supplementary Figure 1. Schematic overview of the analysis workflow.** Matched miRNA and gene expression profiling data were pre-processed (sample ID matching, removal of non-expressed and low-prevalence features, and log transformation) and used to calculate miRNA-gene correlations, retaining pairs with adjusted *p* value \<0.05. miRNA-TF interactions were queried using multiMiR and TF target genes were obtained from ChIP-Atlas. For miRNA-TF pairs where the miRNA had significantly correlated genes and the TF had target genes, over-representation analysis using clusterProfiler identified pairs with significant overlap between the miRNA's positively or negatively correlated genes and the TF's target genes.
+:::
+:::
+
+::: {#supplementary-figure-2 .ms-figure}
+:::: panel-grid
+::::: {.panel data-label="A"}
+![](<plots/Supplementary Figure 2A SKCM - TF target counts are not correlated with the number of biological replicates.png>)
+:::::
+
+::::: {.panel data-label="B"}
+![](<plots/Supplementary Figure 2B BRCA - TF target counts are not correlated with the number of biological replicates.png>)
+:::::
+::::
+
+::: figure-caption
+**Supplementary Figure 2. TF target gene counts are not correlated with the number of biological replicates.** Number of target genes identified per TF (log~2~) plotted against the number of ChIP-seq biological replicates available for that TF in cancer-specific cell lines (log~2~), for **(A)** SKCM (36 TFs; Spearman's ρ = 0.21, *p* = 0.23) and **(B)** BRCA (134 TFs; Spearman's ρ = -0.13, *p* = 0.13).
+:::
 :::
