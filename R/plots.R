@@ -1,118 +1,90 @@
-# =============================================================================
-# plots.R
-# ggplot builders. Each function takes ready-made plot data plus the `plots`
-# section of the config and returns a ggplot object; saving is done by
-# save_plot(). Plot data is prepared in visualizations.R.
-# =============================================================================
+# ggplot functions. Each takes ready-made plot data (see visualizations.R) and
+# returns a ggplot.
 
-save_plot <- function(p, title, plot_cfg, plots_dir) {
-  if (!isTRUE(plot_cfg$save)) return(invisible(NULL))
-  ensure_dir(plots_dir)
-  path <- file.path(plots_dir, title_to_filename(title))
-  ggplot2::ggsave(plot = p, filename = path, width = plot_cfg$width,
-                  height = plot_cfg$height, bg = "white")
-  invisible(path)
+POINT_SIZE <- 7
+POINT_ALPHA <- 0.7
+LABEL_SIZE <- 5
+
+save_plot <- function(p, title, plots_dir, width = 8, height = 5) {
+  dir.create(plots_dir, recursive = TRUE, showWarnings = FALSE)
+  file_name <- paste0(gsub("\\s+", " ", gsub("[\r\n]", " ", title)), ".png")
+  ggsave(plot = p, filename = file.path(plots_dir, file_name),
+         width = width, height = height, bg = "white")
 }
 
-#' Supplementary: TF target counts vs number of biological replicates.
-plot_targets_vs_replicates <- function(target_count, plot_cfg) {
-  ggplot2::ggplot(target_count,
-                  ggplot2::aes(x = log2(replicate.count), y = log2(target.count))) +
-    ggplot2::geom_point() +
-    ggplot2::labs(x = "Log2 Replicate Count",
-                  y = "Log2 Target Gene Count",
-                  title = "TF target counts are not correlated with the number of biological replicates") +
-    ggplot2::theme_minimal()
+# TF target counts vs number of biological replicates (supplementary)
+plot_targets_vs_replicates <- function(tf_target_count) {
+  ggplot(tf_target_count, aes(x = log2(replicate.count), y = log2(target.count))) +
+    geom_point() +
+    labs(x = "Log2 Replicate Count",
+         y = "Log2 Target Gene Count",
+         title = "TF target counts are not correlated with the number of biological replicates") +
+    theme_minimal()
 }
 
-#' Scatter of significant miRNA-TF pairs: top correlation vs -log10(q).
-#'
-#' @param direction "pos" or "neg".
-plot_top_mir_tf_pairs <- function(df, plot_cfg, direction = c("pos", "neg")) {
-  direction <- match.arg(direction)
-  df <- as.data.frame(df)
-
+# Significant miRNA-TF pairs: correlation of the top gene vs -log10(q-value).
+# direction is "pos" or "neg".
+plot_top_mir_tf_pairs <- function(ora_df, direction, n_labels = 5, y_limit = 10.5) {
+  df <- as.data.frame(ora_df)
   if (direction == "neg") {
     df$top_cor_coef <- abs(df$top_cor_coef)
-    point_color <- plot_cfg$colors$negative
+    point_color <- "#9C354B"
     x_label <- "Absolute Correlation Coefficient of \nTop Correlated Gene"
   } else {
-    point_color <- plot_cfg$colors$positive
+    point_color <- "#0D84CD"
     x_label <- "Correlation Coefficient of \nTop Correlated Gene"
   }
 
   top_pairs <- df %>%
     dplyr::arrange(dplyr::desc(top_cor_coef), qval_plot) %>%
-    utils::head(plot_cfg$top_n_labels)
+    head(n_labels)
 
-  ggplot2::ggplot(df, ggplot2::aes(x = top_cor_coef, y = qval_plot)) +
-    ggplot2::geom_point(color = point_color, size = plot_cfg$point_size, alpha = plot_cfg$alpha) +
-    ggplot2::scale_y_continuous(limits = c(0, plot_cfg$y_limit)) +
-    ggrepel::geom_text_repel(data = top_pairs,
-                             ggplot2::aes(label = miR_TF),
-                             force = 1,
-                             direction = "both",
-                             segment.size = 0.2,
-                             color = "black",
-                             nudge_x = 0.1,
-                             nudge_y = 0.1,
-                             max.overlaps = 1000,
-                             size = plot_cfg$annot_text_size) +
-    ggplot2::labs(x = x_label, y = expression(-log[10](qvalue))) +
-    ggplot2::theme_minimal()
+  ggplot(df, aes(x = top_cor_coef, y = qval_plot)) +
+    geom_point(color = point_color, size = POINT_SIZE, alpha = POINT_ALPHA) +
+    scale_y_continuous(limits = c(0, y_limit)) +
+    geom_text_repel(data = top_pairs, aes(label = miR_TF),
+                    force = 1, direction = "both", segment.size = 0.2, color = "black",
+                    nudge_x = 0.1, nudge_y = 0.1, max.overlaps = 1000, size = LABEL_SIZE) +
+    labs(x = x_label, y = expression(-log[10](qvalue))) +
+    theme_minimal()
 }
 
-#' Stacked bar: miRNAs by correlation direction and TF-target overlap.
-plot_mirna_distribution <- function(distribution_data, plot_cfg) {
-  ggplot2::ggplot(distribution_data,
-                  ggplot2::aes(x = correlation_type, y = value, fill = condition)) +
-    ggplot2::geom_bar(stat = "identity") +
-    ggplot2::geom_text(ggplot2::aes(label = value), color = "white",
-                       position = ggplot2::position_stack(vjust = 0.5),
-                       size = plot_cfg$annot_text_size) +
-    ggplot2::theme_minimal() +
-    ggplot2::scale_fill_manual(values = plot_cfg$colors$distribution) +
-    ggplot2::scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 25)) +
-    ggplot2::labs(x = "", y = "Number of miRs", fill = "")
+# Stacked bar of miRNAs by correlation direction and TF-target overlap
+plot_mirna_distribution <- function(distribution_data) {
+  ggplot(distribution_data, aes(x = correlation_type, y = value, fill = condition)) +
+    geom_bar(stat = "identity") +
+    geom_text(aes(label = value), color = "white",
+              position = position_stack(vjust = 0.5), size = LABEL_SIZE) +
+    theme_minimal() +
+    scale_fill_manual(values = c("#1a9850", "#4575b4", "#999999")) +
+    scale_x_discrete(labels = function(x) stringr::str_wrap(x, width = 25)) +
+    labs(x = "", y = "Number of miRs", fill = "")
 }
 
-#' Paired miRNA / TF z-scored expression, one line per significant pair.
-#'
-#' @param interactions_long Output of build_interaction_long_data().
-plot_interactions <- function(interactions_long, plot_cfg, line_color) {
+# Z-scored miRNA and TF expression, one line per significant pair
+plot_interactions <- function(interactions_long, line_color) {
   mirna_labels <- interactions_long %>%
     dplyr::filter(variable == "miRNA") %>%
     dplyr::distinct(miRNA, .keep_all = TRUE)
-
   tf_labels <- interactions_long %>%
     dplyr::filter(variable == "TF") %>%
     dplyr::distinct(TF, .keep_all = TRUE)
 
-  pd <- ggplot2::position_dodge(0.2)
+  pd <- position_dodge(0.2)
   label_layer <- function(data, label_col) {
-    ggrepel::geom_text_repel(data = data,
-                             ggplot2::aes(label = .data[[label_col]]),
-                             position = pd,
-                             force = 1.5,
-                             direction = "both",
-                             segment.size = 0.2,
-                             color = "black",
-                             max.overlaps = 1000,
-                             size = plot_cfg$annot_text_size,
-                             min.segment.length = 0)
+    geom_text_repel(data = data, aes(label = .data[[label_col]]), position = pd,
+                    force = 1.5, direction = "both", segment.size = 0.2, color = "black",
+                    max.overlaps = 1000, size = LABEL_SIZE, min.segment.length = 0)
   }
 
-  ggplot2::ggplot(interactions_long,
-                  ggplot2::aes(x = variable, y = value, group = miR_TF)) +
-    ggplot2::geom_point(ggplot2::aes(color = variable), position = pd, show.legend = FALSE,
-                        size = plot_cfg$point_size, alpha = plot_cfg$alpha) +
-    ggplot2::scale_color_manual(values = c(miRNA = plot_cfg$colors$mirna,
-                                           TF = plot_cfg$colors$tf),
-                                guide = "none") +
+  ggplot(interactions_long, aes(x = variable, y = value, group = miR_TF)) +
+    geom_point(aes(color = variable), position = pd, show.legend = FALSE,
+               size = POINT_SIZE, alpha = POINT_ALPHA) +
+    scale_color_manual(values = c(miRNA = "#89b7d7", TF = "#ffbb78"), guide = "none") +
     label_layer(mirna_labels, "miRNA") +
     label_layer(tf_labels, "TF") +
-    ggplot2::geom_line(color = line_color, alpha = 0.5, position = pd) +
-    ggplot2::labs(x = NULL, y = "Expression Level \n(z-transformed)") +
-    ggplot2::theme_minimal() +
-    ggplot2::guides(alpha = "none")
+    geom_line(color = line_color, alpha = 0.5, position = pd) +
+    labs(x = NULL, y = "Expression Level \n(z-transformed)") +
+    theme_minimal() +
+    guides(alpha = "none")
 }

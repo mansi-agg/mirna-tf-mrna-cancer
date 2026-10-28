@@ -22,17 +22,21 @@ We developed an approach for inferring indirect, TF-mediated relationships betwe
 
 ## Running the analysis
 
-Open `R/main.R`, set the options at the top and source it:
+Open `R/main.R`, choose the cancer and which steps to rerun, and source it:
 
 ```r
-CANCER     <- "BRCA"          # "BRCA", "SKCM", or c("BRCA", "SKCM")
-REGENERATE <- character(0)    # read saved outputs; "all" or e.g. c("ora") to recompute
+CANCER <- "BRCA"   # "BRCA" or "SKCM"
+
+RUN_DOWNLOAD_TCGA         <- FALSE  # 1. download TCGA RNA / miRNA data (several GB)
+RUN_EXPRESSION            <- FALSE  # 2. filter and log-transform expression data
+RUN_CORRELATION           <- FALSE  # 3. mRNA-miRNA correlation
+...
+MAKE_PLOTS                <- TRUE   # 9. make and save the figures
 ```
 
-Study-specific settings are in `R/config_brca.R` and `R/config_skcm.R`; shared settings are in `R/config_common.R`. Saved intermediate results are read from `data_files/<study>/` unless a step is listed in `REGENERATE`.
+A step set to `FALSE` reads its saved output from `data_files/TCGA-<CANCER>/`; `TRUE` reruns it and overwrites that output. If you rerun a step, also rerun the steps after it. All file names and parameters are in `R/config.R`, and each step calls a plain function from the other scripts in `R/`.
 
-
-**Data:** the raw TCGA files (`*.RDS`), filtered expression matrices, correlation tables and ChIP-Atlas TF target files are large and not tracked in git. They can be regenerated with `REGENERATE <- c("tcga_data", "chip_atlas", "all")` (this downloads several GB).
+**Data:** the raw TCGA files (`*.RDS`), filtered expression matrices, correlation tables and ChIP-Atlas TF target files are large and not tracked in git. Set the `RUN_` options to `TRUE` to download and regenerate them.
 
 
 ## Poster
