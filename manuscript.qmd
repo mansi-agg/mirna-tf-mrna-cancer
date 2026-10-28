@@ -3,7 +3,10 @@ pagetitle: "Transcription factors mediate microRNA-gene relationships in cancer"
 format:
   html:
     embed-resources: true
-    toc: false
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    toc-title: "Contents"
     number-sections: false
     include-in-header:
       text: |

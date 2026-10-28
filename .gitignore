@@ -15,3 +15,5 @@ data_files/TCGA-SKCM/rNA_filtered_data.csv
 data_files/TCGA-SKCM/miRNA_filtered_data.csv
 data_files/TCGA-SKCM/TCGA_SKCM_mRNA_miRNA_sig_cor.csv
 data_files/TF_targets
+
+*.html
