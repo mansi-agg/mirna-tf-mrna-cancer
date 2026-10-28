@@ -4,6 +4,7 @@
 .Ruserdata
 .DS_Store
 
+manuscript/
 
 data_files/TCGA-BRCA/*.RDS
 data_files/TCGA-BRCA/rNA_filtered_data.csv
