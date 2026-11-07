@@ -1,19 +1,25 @@
 # Exploring microRNA-mRNA relationships mediated by transcription factors in cancer.
 #
 # Set the options below and source this file. Each step either reruns its
-# analysis (TRUE) or reads its saved output from data_files/TCGA-<CANCER>/ (FALSE).
+# analysis (TRUE) or reads its saved output (FALSE): steps 6 and 8 from
+# data_files_v2/TCGA-<CANCER>/, the others from data_files/TCGA-<CANCER>/.
 # If you rerun a step, also rerun the steps after it that use its output.
+#
+# What to rerun after changing the cell lines (cell_lines/) or MIN_CELL_LINES (R/config.R):
+#   steps 6, 8 and 9 (TF targets, ORA, plots), once with CANCER <- "SKCM" and once with "BRCA".
+#   Steps 1-5 and 7 don't use cell lines, so their saved results can be reused.
+#   Results go to data_files_v2/ and plots_v2/ (set in R/config.R) and replace what is there.
 
-CANCER <- "SKCM"   # "BRCA" or "SKCM"
+CANCER <- "BRCA"   # "BRCA" or "SKCM"
 
 RUN_DOWNLOAD_TCGA         <- FALSE  # 1. download TCGA RNA / miRNA data (several GB)
 RUN_EXPRESSION            <- FALSE  # 2. filter and log-transform expression data
 RUN_CORRELATION           <- FALSE  # 3. mRNA-miRNA correlation
 RUN_MIRNA_TF_INTERACTIONS <- FALSE  # 4. miRNA -> TF interactions from multiMiR (needs internet)
 RUN_DOWNLOAD_CHIP_ATLAS   <- FALSE  # 5. download ChIP-Atlas TF target files (needs internet)
-RUN_TF_TARGETS            <- FALSE  # 6. TF target genes in the cancer cell lines
+RUN_TF_TARGETS            <- TRUE  # 6. TF target genes in the cancer cell lines
 RUN_MIRNA_DIRECT_TARGETS  <- FALSE  # 7. miRNA direct targets from multiMiR (needs internet)
-RUN_ORA                   <- FALSE  # 8. over-representation analysis
+RUN_ORA                   <- TRUE  # 8. over-representation analysis
 MAKE_PLOTS                <- TRUE   # 9. make and save the figures
 
 
@@ -104,16 +110,16 @@ overlap <- build_mirna_tf_overlap(cor_result, interactions_tfs, names(chip_atlas
 # ---- 6. TF target genes ----
 
 if (RUN_TF_TARGETS) {
-  cell_lines <- read_table(file.path(DATA_DIR, CELL_LINES_FILE))
-  tf_targets <- build_tf_targets(chip_atlas_files, cell_lines, CELL_LINE_THRESHOLD)
+  cell_lines <- read_table(CELL_LINES_FILE)
+  tf_targets <- build_tf_targets(chip_atlas_files, cell_lines, MIN_CELL_LINES)
   tf_target_df <- tf_targets$target_df
   tf_target_count <- tf_targets$target_count
 
-  save_table(tf_target_df, file.path(DATA_DIR, TF_TARGET_DF_FILE))
-  save_table(tf_target_count, file.path(DATA_DIR, TF_TARGET_COUNT_FILE))
+  save_table(tf_target_df, file.path(RESULTS_DIR, TF_TARGET_DF_FILE))
+  save_table(tf_target_count, file.path(RESULTS_DIR, TF_TARGET_COUNT_FILE))
 } else {
-  tf_target_df <- read_table(file.path(DATA_DIR, TF_TARGET_DF_FILE))
-  tf_target_count <- read_table(file.path(DATA_DIR, TF_TARGET_COUNT_FILE))
+  tf_target_df <- read_table(file.path(RESULTS_DIR, TF_TARGET_DF_FILE))
+  tf_target_count <- read_table(file.path(RESULTS_DIR, TF_TARGET_COUNT_FILE))
 }
 
 
@@ -136,11 +142,11 @@ if (RUN_ORA) {
   ora_poscor <- ora$poscor
   ora_negcor <- ora$negcor
 
-  save_table(ora_poscor, file.path(DATA_DIR, ORA_POSCOR_FILE))
-  save_table(ora_negcor, file.path(DATA_DIR, ORA_NEGCOR_FILE))
+  save_table(ora_poscor, file.path(RESULTS_DIR, ORA_POSCOR_FILE))
+  save_table(ora_negcor, file.path(RESULTS_DIR, ORA_NEGCOR_FILE))
 } else {
-  ora_poscor <- read_table(file.path(DATA_DIR, ORA_POSCOR_FILE))
-  ora_negcor <- read_table(file.path(DATA_DIR, ORA_NEGCOR_FILE))
+  ora_poscor <- read_table(file.path(RESULTS_DIR, ORA_POSCOR_FILE))
+  ora_negcor <- read_table(file.path(RESULTS_DIR, ORA_NEGCOR_FILE))
 }
 
 log_msg("Significant miRNA-TF pairs: ", nrow(ora_poscor), " positive, ", nrow(ora_negcor), " negative")

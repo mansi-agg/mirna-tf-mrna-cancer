@@ -1,24 +1,34 @@
 # TF target genes from ChIP-seq experiments in cancer cell lines.
 
-# Target genes of one TF with a peak in at least `threshold` of the cancer
-# cell lines. Returns NULL if the TF has no data in these cell lines.
-consensus_tf_targets <- function(tf_file, cell_line_ids, threshold) {
+# Target genes of one TF that are bound in at least `min_cell_lines` different
+# cancer cell lines. Experiments are first merged per cell line: a gene counts
+# as bound in a line if any of that line's experiments has a peak near it, so a
+# heavily studied line (e.g. MCF-7) counts once. Returns NULL if the TF has no
+# data in these cell lines.
+consensus_tf_targets <- function(tf_file, experiment_line, min_cell_lines) {
   tab <- read.table(tf_file, header = TRUE, sep = "\t")
   names(tab) <- gsub("\\..*", "", names(tab))  # "SRX186798.Breast_cancer" -> "SRX186798"
 
-  cell_cols <- which(names(tab) %in% cell_line_ids)
-  if (length(cell_cols) == 0) return(NULL)
+  experiments <- intersect(names(tab), names(experiment_line))
+  if (length(experiments) == 0) return(NULL)
 
-  consensus <- rowMeans(as.matrix(tab[, cell_cols, drop = FALSE]) != 0)
-  tab$Target_genes[consensus >= threshold]
+  bound <- as.matrix(tab[, experiments, drop = FALSE]) != 0
+  lines <- experiment_line[experiments]
+  bound_per_line <- sapply(unique(lines), function(l) rowSums(bound[, lines == l, drop = FALSE]) > 0)
+  n_lines_bound <- rowSums(matrix(bound_per_line, nrow = nrow(tab)))
+
+  tab$Target_genes[n_lines_bound >= min_cell_lines]
 }
 
 # Consensus targets for every TF.
 # Returns list(target_df = TF, TF_targets; target_count = TF, replicate.count, target.count)
-build_tf_targets <- function(tf_files, cell_lines, threshold) {
+build_tf_targets <- function(tf_files, cell_lines, min_cell_lines) {
   log_msg("Reading ", length(tf_files), " ChIP-Atlas files")
+  # Cell line of each experiment (Cellosaurus ID; older lists only have the cell type name)
+  line_col <- if ("cellosaurus_id" %in% names(cell_lines)) "cellosaurus_id" else "Cell type"
+  experiment_line <- setNames(cell_lines[[line_col]], cell_lines$`SRX ID`)
   targets <- lapply(tf_files, consensus_tf_targets,
-                    cell_line_ids = cell_lines$`SRX ID`, threshold = threshold)
+                    experiment_line = experiment_line, min_cell_lines = min_cell_lines)
   targets <- Filter(Negate(is.null), targets)
 
   target_df <- tibble::tibble(TF         = rep(names(targets), lengths(targets)),

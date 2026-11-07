@@ -459,7 +459,9 @@ Zou, Z., Ohta, T., Miura, F., & Oki, S. (2022). ChIP-Atlas 2021 update: a data-m
 
 {{< pagebreak >}}
 
-## SUPPLEMENTARY FIGURES {#supplementary-figures}
+## SUPPLEMENTARY MATERIAL {#supplementary-material}
+
+### Supplementary Figures {#supplementary-figures}
 
 ::: {#supplementary-figure-1 .ms-figure}
 ![](<plots/Supplementary Figure 1.jpg>)
@@ -484,3 +486,28 @@ Zou, Z., Ohta, T., Miura, F., & Oki, S. (2022). ChIP-Atlas 2021 update: a data-m
 **Supplementary Figure 2. TF target gene counts are not correlated with the number of biological replicates.** Number of target genes identified per TF (log~2~) plotted against the number of ChIP-seq biological replicates available for that TF in cancer-specific cell lines (log~2~), for **(A)** SKCM (36 TFs; Spearman's ρ = 0.21, *p* = 0.23) and **(B)** BRCA (134 TFs; Spearman's ρ = -0.13, *p* = 0.13).
 :::
 :::
+
+### Supplementary Methods: Selecting cancer cell-line ChIP-seq experiments {#supplementary-cell-lines}
+
+TF target genes were defined using ChIP-seq experiments from melanoma (SKCM) and breast cancer (BRCA) cell lines. These experiments were selected automatically by code, and the decision and reason for every experiment are recorded in the [`cell_lines`](https://github.com/mansi-agg/mirna-tf-mrna-cancer/tree/main/cell_lines) folder of the project repository.
+
+Two public databases were used:
+
+- **ChIP-Atlas** ([Zou et al., 2022](#ref-zou2022){.cite}; version of 14 October 2026) lists ChIP-seq experiments, with the protein measured, the cell type and the sample description.
+- **Cellosaurus** ([Bairoch, 2018](#ref-bairoch2018){.cite}; version of 22 October 2026) describes cell lines, including the disease each came from and whether it is a cancer line, misidentified or modified.
+
+We started from hg38 ChIP-Atlas experiments in the "TFs and others" class from breast or skin tissue, or on a breast cancer or melanoma cell line, and matched each experiment's cell type to Cellosaurus by name. An experiment was kept only if it passed all of the following checks:
+
+| Check | Example of an experiment removed | Removed (SKCM) | Removed (BRCA) |
+|---|---|---:|---:|
+| 1. A transcription factor was measured | Antibody against a protein tag (e.g. FLAG), not a TF | 98 | 281 |
+| 2. A specific cell line is named | Labelled only "Breast cancer cells" | 463 | 454 |
+| 3. It is a cancer cell line | MCF 10A (normal breast cells) | 71 | 315 |
+| 4. It comes from the right cancer | MKL-1 (Merkel cell carcinoma, not melanoma) | 34 | 8 |
+| 5. Both databases agree on the tissue | "ME-1", a name shared by a melanoma and a leukaemia line | 44 | 5 |
+| 6. It is not misidentified | MDA-MB-435 (described as breast cancer, actually melanoma) | 11 | 8 |
+| 7. The cells were not modified | MCF-7 with FOXA1 knocked down; tamoxifen-resistant MCF-7 | 75 | 763 |
+| **Kept** | | **94** | **3,210** |
+| **Total considered** | | **890** | **5,044** |
+
+For melanoma, only cutaneous melanoma lines were accepted, as TCGA-SKCM is cutaneous melanoma. Modified cells (check 7) were excluded because genetic changes can alter where a TF binds. Cells treated with a drug or hormone, but not genetically changed, were kept. The kept experiments cover 16 melanoma cell lines (38 TFs) and 40 breast cancer cell lines (320 TFs).
