@@ -4,7 +4,7 @@
 # Gives the same Pearson r and t-test p-value as Hmisc::rcorr(), but only
 # computes the gene x miRNA pairs, so it is much faster.
 compute_mrna_mirna_correlation <- function(rna, mirna, gene_mapping,
-                                           method = "pearson", fdr = 0.05) {
+                                           method = "spearman", fdr = 0.05) {
   rna <- as.matrix(rna)
   mirna <- as.matrix(mirna)[, colnames(rna)]
 

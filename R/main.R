@@ -10,7 +10,7 @@
 #   Steps 1-5 and 7 don't use cell lines, so their saved results can be reused.
 #   Results go to data_files_v2/ and plots_v2/ (set in R/config.R) and replace what is there.
 
-CANCER <- "BRCA"   # "BRCA" or "SKCM"
+CANCER <- "SKCM"   # "BRCA" or "SKCM"
 
 RUN_DOWNLOAD_TCGA         <- FALSE  # 1. download TCGA RNA / miRNA data (several GB)
 RUN_EXPRESSION            <- FALSE  # 2. filter and log-transform expression data

@@ -44,11 +44,12 @@ TF_TARGETS_DIR <- here("data_files", "TF_targets")    # ChIP-Atlas target gene f
 # ---- Analysis parameters ----
 
 EXPRESSION_THRESHOLD   <- 60     # drop genes/miRNAs that are zero in more than this % of samples
-CORRELATION_METHOD     <- "pearson"
+CORRELATION_METHOD     <- "spearman"
 CORRELATION_FDR        <- 0.05
 ORA_FDR                <- 0.05
-MIN_CELL_LINES         <- 1      # keep TF targets bound in at least this many different cancer cell lines
-                                 # (was: bound in >= 50% of the cell-line experiments)
+# TF target genes, two-level rule (each cell line counts once; see R/tf_targets.R):
+LINE_THRESHOLD         <- 0.5    # 1. bound in a cell line if peaks in >= this fraction of its experiments
+ACROSS_LINES_THRESHOLD <- 0.5    # 2. target if bound in >= this fraction of the TF's cell lines
 CHIP_ATLAS_GENOME      <- "hg38"
 CHIP_ATLAS_TSS_KB      <- 5      # peak distance from TSS (kb)
 VALIDATION_EXPERIMENTS <- c("luciferase", "western blot")  # for the interaction plots

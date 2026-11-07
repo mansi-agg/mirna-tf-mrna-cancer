@@ -21,3 +21,5 @@ data_files/TF_targets
 
 *.html
 cell_lines/raw/
+
+runAnalysis.Rmd

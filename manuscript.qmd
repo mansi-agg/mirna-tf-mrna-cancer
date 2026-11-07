@@ -91,7 +91,7 @@ A database of known human TFs identified through functional characterisation of 
 
 To determine the genes targeted by TFs, we used ChIP-Atlas, a comprehensive web service of consolidated ChIP-seq datasets aligned to a uniform human genome (hg38) prior to peak calling ([Zou et al., 2022](#ref-zou2022){.cite}). Significant peaks indicative of TF-binding sites were identified, and genes with peaks overlapping with transcription start site regions within a specified distance were considered as potential TF targets.
 
-We also curated melanoma and breast cancer cell lines from both ChIP-Atlas metadata and the Cellosaurus ([Bairoch, 2018](#ref-bairoch2018){.cite}) database in order to provide cancer cell type-specific support during identification of TFs of interest. For each TF in the list from [Lambert et al. (2018)](#ref-lambert2018){.cite}, we identified all genes that demonstrated significant TF binding within 5000 base pairs of the gene's TSS. To reduce false positives from individual ChIP-seq experiments, we applied a consensus threshold such that a gene was retained as a TF target only if it showed TF binding in at least 50% of the cancer-specific cell lines with available ChIP-seq data. We did not apply any minimum threshold on the number of ChIP-seq replicates or distinct cell lines represented in the datasets per TF: A Spearman correlation analysis revealed no significant association between the number of biological replicates and the number of target genes identified per TF ([Supplementary Fig. 2](#supplementary-figure-2){.fig-link}), indicating that variation in replicate count (e.g. publication biases) did not systematically inflate or deflate TF target gene counts.
+We also curated melanoma and breast cancer cell lines from both ChIP-Atlas metadata and the Cellosaurus ([Bairoch, 2018](#ref-bairoch2018){.cite}) database in order to provide cancer cell type-specific support during identification of TFs of interest. For each TF in the list from [Lambert et al. (2018)](#ref-lambert2018){.cite}, we identified all genes that demonstrated significant TF binding within 5000 base pairs of the gene's TSS. To reduce false positives from individual ChIP-seq experiments, a gene was considered bound in a cell line if it showed TF binding in at least 50% of that line's experiments, and was retained as a TF target only if bound in at least 50% of the cancer-specific cell lines with available ChIP-seq data, so that each cell line counted once ([Supplementary Methods](#supplementary-tf-targets){.fig-link}). No minimum number of experiments or cell lines per TF was required: the number of target genes per TF was not associated with its number of ChIP-seq experiments (Spearman correlation; [Supplementary Fig. 2](#supplementary-figure-2){.fig-link}), indicating that variation in the number of experiments (e.g. publication biases) did not systematically inflate or deflate TF target gene counts.
 
 ### Over-representation analysis
 
@@ -115,16 +115,16 @@ Pairwise Spearman correlation analysis identified a substantial number of signif
 
 ### Over-representation analysis of miRNA-TF-mRNA interactions
 
-We next employed ORA to assess whether the set of genes correlated with but not directly targeted by a given miRNA, were enriched for gene targets of a TF known to be a direct target of that miRNA. Out of the 779 miRNAs evaluable in SKCM, 163 were found to target at least one TF. Of these 163 miRNAs, significant TF target gene enrichment was identified in the negatively and positively correlated gene sets of 21 and 45 miRNAs, respectively ([Fig. 1A](#figure-1){.fig-link}). The equivalent numbers from analysis of the 575 miRNAs in the BRCA dataset were 54 and 57, respectively, from among the 92 miRNAs found to target at least one TF ([Fig. 1B](#figure-1){.fig-link}).
+We next employed ORA to assess whether the set of genes correlated with but not directly targeted by a given miRNA, were enriched for gene targets of a TF known to be a direct target of that miRNA. Out of the 779 miRNAs evaluable in SKCM, 163 were found to target at least one TF. Of these 163 miRNAs (60 targeting a TF with ChIP-seq data in the selected cell lines), significant TF target gene enrichment was identified in the negatively and positively correlated gene sets of 11 and 28 miRNAs, respectively ([Fig. 1A](#figure-1){.fig-link}). The equivalent numbers from analysis of the 575 miRNAs in the BRCA dataset were 45 and 50, respectively, from among the 92 miRNAs found to target at least one TF (75 with ChIP-seq data in the selected cell lines) ([Fig. 1B](#figure-1){.fig-link}).
 
 ::: {#figure-1 .ms-figure}
 :::: panel-grid
 ::::: {.panel data-label="A"}
-![](<plots/SKCM/SKCM - Distribution of miRNAs Based on Correlation with Genes and Overlap with TF Targets.png>)
+![](<plots_v2/SKCM/SKCM - Distribution of miRNAs Based on Correlation with Genes and Overlap with TF Targets.png>)
 :::::
 
 ::::: {.panel data-label="B"}
-![](<plots/BRCA/BRCA - Distribution of miRNAs Based on Correlation with Genes and Overlap with TF Targets.png>)
+![](<plots_v2/BRCA/BRCA - Distribution of miRNAs Based on Correlation with Genes and Overlap with TF Targets.png>)
 :::::
 ::::
 
@@ -135,24 +135,24 @@ We next employed ORA to assess whether the set of genes correlated with but not 
 
 ### Identifying potential TF-mediated miRNA effects guided by strong correlations
 
-We next sought to identify potentially biologically relevant miRNA-TF relationships within our significant overlap results. First, we selected the most highly correlated gene from the overlapping gene set of each miRNA-TF pair as representing the strongest individual signal of a tripartite regulatory relationship, and denoted this value as the nominal correlation value of the miRNA-TF pair. We then ranked miRNA-TF pairs by this correlation value (descending order of absolute correlation coefficient) and overlap enrichment significance (ascending order of FDR), as represented in [Fig. 2](#figure-2){.fig-link}. In the melanoma cohort, significant overlap (FDR \< 0.05) between miR-correlated genes and TF targets was found for 31 miR-TF among negatively correlated genes 90 miR-TF pairs among positively correlated genes; in the breast cancer data, there were 300 and 388 miR-TF pairs respectively.
+We next sought to identify potentially biologically relevant miRNA-TF relationships within our significant overlap results. First, we selected the most highly correlated gene from the overlapping gene set of each miRNA-TF pair as representing the strongest individual signal of a tripartite regulatory relationship, and denoted this value as the nominal correlation value of the miRNA-TF pair. We then ranked miRNA-TF pairs by this correlation value (descending order of absolute correlation coefficient) and overlap enrichment significance (ascending order of FDR), as represented in [Fig. 2](#figure-2){.fig-link}. In the melanoma cohort, significant overlap (FDR \< 0.05) between miR-correlated genes and TF targets was found for 14 miR-TF pairs among negatively correlated genes and 42 miR-TF pairs among positively correlated genes; in the breast cancer data, there were 225 and 301 miR-TF pairs respectively.
 
 ::: {#figure-2 .ms-figure}
 :::: panel-grid
 ::::: {.panel data-label="A"}
-![](<plots/SKCM/SKCM - Top miR-TF pairs - Negative Correlation.png>)
+![](<plots_v2/SKCM/SKCM - Top miR-TF pairs - Negative Correlation.png>)
 :::::
 
 ::::: {.panel data-label="B"}
-![](<plots/SKCM/SKCM - Top miR-TF pairs - Positive Correlation.png>)
+![](<plots_v2/SKCM/SKCM - Top miR-TF pairs - Positive Correlation.png>)
 :::::
 
 ::::: {.panel data-label="C"}
-![](<plots/BRCA/BRCA - Top miR-TF pairs - Negative Correlation.png>)
+![](<plots_v2/BRCA/BRCA - Top miR-TF pairs - Negative Correlation.png>)
 :::::
 
 ::::: {.panel data-label="D"}
-![](<plots/BRCA/BRCA - Top miR-TF pairs - Positive Correlation.png>)
+![](<plots_v2/BRCA/BRCA - Top miR-TF pairs - Positive Correlation.png>)
 :::::
 ::::
 
@@ -161,30 +161,30 @@ We next sought to identify potentially biologically relevant miRNA-TF relationsh
 :::
 :::
 
-Several individual miRNA or TFs appeared recurrently implicated as members of tripartite regulatory relationships in these datasets. In SKCM, GATA3 appeared in 2 of 5 top pairs in negatively correlated genes. In BRCA, miR-449a was present in all 5 top pairs from positively correlated genes while miR-439 and miR-577 were present in all 5 top pairs from negatively correlated genes; however, the associated TFs varied. Notably, these enriched miRNA--TF--mRNA relationships were observed across a wide range of miRNA and TF expression levels, with no evident dependence on absolute abundance.
+Several individual miRNA or TFs appeared recurrently implicated as members of tripartite regulatory relationships in these datasets. In SKCM, miR-484 appeared in 3 of 5 top pairs in negatively correlated genes. In BRCA, miR-449a was present in all 5 top pairs from positively correlated genes while miR-429 and miR-577 each appeared in 2 of 5 top pairs from negatively correlated genes; however, the associated TFs varied. Notably, these enriched miRNA--TF--mRNA relationships were observed across a wide range of miRNA and TF expression levels, with no evident dependence on absolute abundance.
 
 ### Experimentally validated miRNA-TF interactions
 
 While all miR-TF interactions queried from multiMiR were experimentally validated, we further refined the significant ORA results to include only interactions validated by luciferase assay or western blot since miRNA target interactions (MTI) are considered to have strong support when these techniques are used.
 
-In the SKCM cohort, 3 and 4 miR-TF pairs each showed a stronger evidence of miRNA-TF binding among negatively and positively correlated genes sets respectively; for BRCA, 17 and 18 miR-TF pairs each showed a significant overlap, respectively.
+In the SKCM cohort, 3 miR-TF pairs each showed a stronger evidence of miRNA-TF binding among negatively and positively correlated genes sets respectively; for BRCA, 12 and 13 miR-TF pairs each showed a significant overlap, respectively.
 
 ::: {#figure-6 .ms-figure}
 :::: panel-grid
 ::::: {.panel data-label="A"}
-![](<plots/SKCM/SKCM - Interaction Plot - miRs with negatively correlated genes.png>)
+![](<plots_v2/SKCM/SKCM - Interaction Plot - miRs with negatively correlated genes.png>)
 :::::
 
 ::::: {.panel data-label="B"}
-![](<plots/SKCM/SKCM - Interaction Plot - miRs with positively correlated genes.png>)
+![](<plots_v2/SKCM/SKCM - Interaction Plot - miRs with positively correlated genes.png>)
 :::::
 
 ::::: {.panel data-label="C"}
-![](<plots/BRCA/BRCA - Interaction Plot - miRs with negatively correlated genes.png>)
+![](<plots_v2/BRCA/BRCA - Interaction Plot - miRs with negatively correlated genes.png>)
 :::::
 
 ::::: {.panel data-label="D"}
-![](<plots/BRCA/BRCA - Interaction Plot - miRs with positively correlated genes.png>)
+![](<plots_v2/BRCA/BRCA - Interaction Plot - miRs with positively correlated genes.png>)
 :::::
 ::::
 
@@ -193,17 +193,17 @@ In the SKCM cohort, 3 and 4 miR-TF pairs each showed a stronger evidence of miRN
 :::
 :::
 
-MYC appears in both cohorts, for both positively and negatively correlated gene sets. MiR-107 also appears in both cohorts in positively correlated gene interactions. In BRCA, TFs MYC and ZEB1 have the highest number of significant interactions with miRs in both positively and negatively correlated cases ([Figure 6](#figure-6){.fig-link}).
+MYC appears in BRCA, in both negatively and positively correlated gene sets (C and D), while MITF appears in SKCM in both gene sets (A and B). MiR-429 appears in both cohorts: in negatively correlated gene interactions in SKCM, and in both negatively and positively correlated gene interactions in BRCA. In BRCA, SP1 has the highest number of significant interactions with miRs in both negatively and positively correlated cases, followed by ZEB1 and SOX2 ([Figure 6](#figure-6){.fig-link}).
 
 ## DISCUSSION
 
-This study aimed to develop a method to unravel the indirect miRNA regulation of gene expression mediated by TFs, using only standard miRNA/mRNA expression data as input. By integrating known TFs and accounting for validated miRNA-TF interactions, we found that 15-20% of miRNA targeted at least one TF, with strong evidence that TF regulation of gene expression explains the relationship between hundreds of apparent miRNA-gene correlations at transcriptomic level. We found that ranking miRNA-TF pairs based on strength of gene correlation and over-representation analysis significance may help identify key miRNAs or TFs of strong biological relevance for further characterisation, including GATA3 in melanoma, and miR-429 and miR-449 in breast cancer.
+This study aimed to develop a method to unravel the indirect miRNA regulation of gene expression mediated by TFs, using only standard miRNA/mRNA expression data as input. By integrating known TFs and accounting for validated miRNA-TF interactions, we found that 16-21% of miRNAs targeted at least one TF, with strong evidence that TF regulation of gene expression explains the relationship between hundreds of apparent miRNA-gene correlations at transcriptomic level. We found that ranking miRNA-TF pairs based on strength of gene correlation and over-representation analysis significance may help identify key miRNAs or TFs of strong biological relevance for further characterisation, including miR-484 and MITF in melanoma, and miR-429 and miR-449 in breast cancer.
 
 Notably, the regulatory relationships that were identified did not depend on absolute miRNA or TF abundance, implying that even moderately expressed miRNAs can exert significant effects if they target critical network nodes (such as master TFs in a network). This lack of strict dependence on expression level underscores that a miRNA's impact in cancer is defined more by its network connectivity and interactions than by its sheer quantity. However, while miRNAs have distinct mRNA targets, this relationship is not one-to-one. Instead, they participate in extensive, overlapping networks where cooperativity and redundancy can obscure causal links in correlation-based approaches ([Schmitz et al., 2014](#ref-schmitz2014){.cite}). This complexity poses a challenge when inferring functional regulation purely from expression data without direct experimental validation.
 
-We highlight a few literature-supported examples that reinforce the biological relevance of key miRNA-TF interactions to cancer biology. MiR-449a, present in all 5 top miRNA-TF pairs from the negatively-correlated gene set in BRCA, is downregulated in breast cancer and suppresses proliferation, migration, and metastasis by targeting PLAGL2 ([Xu et al., 2018](#ref-xu2018){.cite}).Our data therefore suggest that these 5 TFs targeted by miR-449a (i.e. EGR1, CTCF, RFX1, YY1 and PCGF2) collectively act to promote expression of a set of oncogenic genes in breast cancer cells, many of which are likely contained within the negatively-correlated but not directly targeted gene set of miR-449a.
+We highlight a few literature-supported examples that reinforce the biological relevance of key miRNA-TF interactions to cancer biology. MiR-449a, present in all 5 top miRNA-TF pairs from the positively-correlated gene set in BRCA, is downregulated in breast cancer and suppresses proliferation, migration, and metastasis by targeting PLAGL2 ([Xu et al., 2018](#ref-xu2018){.cite}).Our data therefore suggest that these 5 TFs targeted by miR-449a (i.e. CEBPB, CTCF, JUN, KDM5B and PCGF2) collectively act to promote expression of a set of oncogenic genes in breast cancer cells, many of which are likely contained within the positively-correlated but not directly targeted gene set of miR-449a.
 
-Among experimentally validated interactions, miR-107--ARNT and miR-137--MITF were significant in SKCM, with miR-107 also appearing in BRCA. miR-107 has been shown to suppress melanoma and breast cancer progression ([Gao et al., 2017](#ref-gao2017){.cite}; [Zhao et al., 2020](#ref-zhao2020g){.cite}), while ARNT downregulation promotes melanoma metastasis ([Huang et al., 2021](#ref-huang2021){.cite}). In BRCA, TFs MYC and ZEB1 have the most number of significant interactions with miRs in both positively and negatively correlated cases; both are well-established drivers of aggressive breast cancer phenotypes, linked to poor prognosis and contributing to tumour initiation ([Katsura et al., 2017](#ref-katsura2017){.cite}; [Xu et al., 2010](#ref-xu2010){.cite}).
+Among experimentally validated interactions, miR-107--ARNT and miR-137--MITF were significant in SKCM. miR-107 has been shown to suppress melanoma cancer progression ([Gao et al., 2017](#ref-gao2017){.cite}; [Zhao et al., 2020](#ref-zhao2020g){.cite}), while ARNT downregulation promotes melanoma metastasis ([Huang et al., 2021](#ref-huang2021){.cite}). In BRCA, TFs MYC and ZEB1 significant interactions with miRs in both positively and negatively correlated cases; both are well-established drivers of aggressive breast cancer phenotypes, linked to poor prognosis and contributing to tumour initiation ([Katsura et al., 2017](#ref-katsura2017){.cite}; [Xu et al., 2010](#ref-xu2010){.cite}).
 
 While the role of miRNAs in regulating both normal and pathological cell behaviour is well-established, the intricacy of gene regulatory networks in cancer warrants an increasingly systems-level approach to the design and interpretation of genomic data. Here, we developed an approach to the inference of indirect, TF-mediated relationships between miRNA and genes. We identified compelling signals of candidate tripartite relationships warranting experimental validation. Furthermore, our approach may be more broadly useful to refine focus on genes of interest in any biological system by leveraging the orthogonal information derived from miRNA, even when the microRNA is seemingly not directly involved. Future work building focus on indirect regulatory relationships will help unravel the underlying mechanisms, and therapeutic opportunities, in cancer biology.
 
@@ -474,16 +474,16 @@ Zou, Z., Ohta, T., Miura, F., & Oki, S. (2022). ChIP-Atlas 2021 update: a data-m
 ::: {#supplementary-figure-2 .ms-figure}
 :::: panel-grid
 ::::: {.panel data-label="A"}
-![](<plots/Supplementary Figure 2A SKCM - TF target counts are not correlated with the number of biological replicates.png>)
+![](<plots_v2/SKCM/SKCM - TF target counts are not correlated with the number of biological replicates.png>)
 :::::
 
 ::::: {.panel data-label="B"}
-![](<plots/Supplementary Figure 2B BRCA - TF target counts are not correlated with the number of biological replicates.png>)
+![](<plots_v2/BRCA/BRCA - TF target counts are not correlated with the number of biological replicates.png>)
 :::::
 ::::
 
 ::: figure-caption
-**Supplementary Figure 2. TF target gene counts are not correlated with the number of biological replicates.** Number of target genes identified per TF (log~2~) plotted against the number of ChIP-seq biological replicates available for that TF in cancer-specific cell lines (log~2~), for **(A)** SKCM (36 TFs; Spearman's ρ = 0.21, *p* = 0.23) and **(B)** BRCA (134 TFs; Spearman's ρ = -0.13, *p* = 0.13).
+**Supplementary Figure 2. TF target gene counts are not correlated with the number of ChIP-seq experiments.** Number of target genes identified per TF (log~2~) plotted against the number of ChIP-seq experiments available for that TF in the selected cancer cell lines (log~2~), for **(A)** SKCM (13 TFs; Spearman's ρ = 0.05, *p* = 0.87) and **(B)** BRCA (123 TFs; Spearman's ρ = 0.05, *p* = 0.61). Target genes were defined using the two-step rule described in the Supplementary Methods.
 :::
 :::
 
@@ -511,3 +511,14 @@ We started from hg38 ChIP-Atlas experiments in the "TFs and others" class from b
 | **Total considered** | | **890** | **5,044** |
 
 For melanoma, only cutaneous melanoma lines were accepted, as TCGA-SKCM is cutaneous melanoma. Modified cells (check 7) were excluded because genetic changes can alter where a TF binds. Cells treated with a drug or hormone, but not genetically changed, were kept. The kept experiments cover 16 melanoma cell lines (38 TFs) and 40 breast cancer cell lines (320 TFs).
+
+#### Deciding which genes are targets of a TF {#supplementary-tf-targets}
+
+Many cell lines have been profiled in several ChIP-seq experiments; for example, 529 of the 719 kept ESR1 experiments come from MCF-7. Experiments from the same cell line are not independent evidence, so counting each experiment separately would let a heavily studied line dominate. We therefore decided on TF targets in two steps, so that each cell line counts once:
+
+1. **Within each cell line:** a gene counts as bound in that cell line if the TF has a peak within 5 kb of the gene's TSS in at least 50% of that line's experiments.
+2. **Across cell lines:** the gene is a target of the TF if it is bound in at least 50% of the cell lines with data for that TF.
+
+For example, if ESR1 binds a gene in 87% of MCF-7 experiments, 28% of T-47D experiments and 100% of ZR-75-1 experiments, the gene counts as bound in MCF-7 and ZR-75-1 but not in T-47D. It is bound in 2 of 3 cell lines (67%), so it is kept as an ESR1 target. For a TF with ChIP-seq data in only one cell line, the gene must be bound in at least half of that line's experiments.
+
+Most TFs had data in only a few relevant cell lines: one line for 7 of 13 TFs in SKCM and for 83 of 123 TFs in BRCA. The number of target genes per TF was not associated with the number of experiments available for it ([Supplementary Fig. 2](#supplementary-figure-2){.fig-link}).
